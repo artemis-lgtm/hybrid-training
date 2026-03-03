@@ -155,6 +155,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .timer-start { background:var(--green); color:var(--white); }
 .timer-stop { background:var(--red); color:var(--white); }
 .timer-reset { background:var(--surface); color:var(--muted); border:1px solid var(--border) !important; }
+
+/* Chart styles */
+.chart-range-btn { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; }
+.chart-range-btn.active { background:var(--accent); border-color:var(--accent); color:var(--white); }
+canvas { border-radius:8px; }
 </style>
 </head>
 <body>
@@ -171,6 +176,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="tab" onclick="switchTab('nutrition')">Fuel</div>
     <div class="tab" onclick="switchTab('mobility')">APT Fix</div>
     <div class="tab" onclick="switchTab('progress')">Track</div>
+    <div class="tab" onclick="switchTab('charts')">Charts</div>
   </div>
 
   <!-- ===== TODAY ===== -->
@@ -283,6 +289,46 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
   </div>
 </div>
+
+  <!-- ===== CHARTS ===== -->
+  <div id="charts" class="section">
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Weight Over Time</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="chart-range-btn active" onclick="setWeightRange('all',this)">All</button>
+        <button class="chart-range-btn" onclick="setWeightRange(30,this)">30d</button>
+        <button class="chart-range-btn" onclick="setWeightRange(90,this)">90d</button>
+        <button class="chart-range-btn" onclick="setWeightRange(180,this)">6mo</button>
+      </div>
+      <canvas id="weightChart" width="440" height="220" style="width:100%;height:auto;"></canvas>
+      <div id="weightChartStats" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>Waist Trend</div>
+      <canvas id="waistChart" width="440" height="180" style="width:100%;height:auto;"></canvas>
+      <div id="waistChartStats" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--green)"></div>Lift Progression</div>
+      <div style="margin-bottom:10px;">
+        <select id="liftSelect" onchange="renderLiftChart()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;width:100%;">
+          <option value="">Select an exercise...</option>
+        </select>
+      </div>
+      <canvas id="liftChart" width="440" height="220" style="width:100%;height:auto;"></canvas>
+      <div id="liftChartStats" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--orange)"></div>Weekly Volume</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Workouts completed per week</div>
+      <canvas id="volumeChart" width="440" height="180" style="width:100%;height:auto;"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--red)"></div>Body Composition Estimate</div>
+      <canvas id="compChart" width="440" height="220" style="width:100%;height:auto;"></canvas>
+      <div id="compChartStats" style="margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5;"></div>
+    </div>
+  </div>
 
 <!-- Edit Modal -->
 <div class="modal-overlay" id="editModal">
@@ -445,13 +491,15 @@ function resetTimer() { clearInterval(timerInterval); timerInterval=null; timerS
 
 // ===== TABS =====
 function switchTab(id) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', t.textContent.toLowerCase().includes(id.slice(0,3)) || (id==='mobility' && t.textContent==='APT Fix') || (id==='today' && i===0)));
+  const tabMap = { today:0, plan:1, nutrition:2, mobility:3, progress:4, charts:5 };
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===tabMap[id]));
   document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id===id));
   if(id==='today') renderToday();
   if(id==='plan') renderPlan();
   if(id==='nutrition') renderNutrition();
   if(id==='mobility') renderMobility();
   if(id==='progress') renderProgress();
+  if(id==='charts') renderCharts();
 }
 
 // ===== TOAST =====
@@ -736,6 +784,378 @@ function logLift() {
   document.getElementById('liftReps').value = '';
   renderProgress();
   toast(`PR: ${name} ${weight}x${reps}`);
+}
+
+// ===== CHARTS =====
+let weightChartRange = 'all';
+const DPR = window.devicePixelRatio || 1;
+
+function setupCanvas(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || canvas.width;
+  const h = rect.height || canvas.height;
+  canvas.width = w * DPR;
+  canvas.height = h * DPR;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  return { ctx, w, h };
+}
+
+function drawLineChart(canvasId, data, opts = {}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !data.length) {
+    if (canvas) {
+      const { ctx, w, h } = setupCanvas(canvas);
+      ctx.fillStyle = '#8888a0';
+      ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Log data to see your chart', w/2, h/2);
+    }
+    return;
+  }
+  const { ctx, w, h } = setupCanvas(canvas);
+  const pad = { top: 20, right: 16, bottom: 35, left: 46 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const vals = data.map(d => d.val);
+  let minV = Math.min(...vals);
+  let maxV = Math.max(...vals);
+  if (maxV === minV) { maxV += 5; minV -= 5; }
+  const rangeV = maxV - minV;
+  const buffer = rangeV * 0.1;
+  minV -= buffer; maxV += buffer;
+
+  // Background
+  ctx.fillStyle = '#12121a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid lines
+  const gridLines = 5;
+  ctx.strokeStyle = '#2a2a3a';
+  ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#8888a0';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= gridLines; i++) {
+    const y = pad.top + (ch / gridLines) * i;
+    const val = maxV - ((maxV - minV) / gridLines) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(val.toFixed(1), pad.left - 6, y + 3);
+  }
+
+  // Target line
+  if (opts.target) {
+    const ty = pad.top + ch - ((opts.target - minV) / (maxV - minV)) * ch;
+    if (ty > pad.top && ty < pad.top + ch) {
+      ctx.strokeStyle = opts.targetColor || '#00b894';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, ty);
+      ctx.lineTo(w - pad.right, ty);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = opts.targetColor || '#00b894';
+      ctx.font = '9px -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(opts.targetLabel || 'Target', w - pad.right - 40, ty - 4);
+    }
+  }
+
+  // Data line
+  const lineColor = opts.color || '#6c5ce7';
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = pad.left + (cw / Math.max(data.length - 1, 1)) * i;
+    const y = pad.top + ch - ((d.val - minV) / (maxV - minV)) * ch;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+  grad.addColorStop(0, lineColor + '40');
+  grad.addColorStop(1, lineColor + '00');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = pad.left + (cw / Math.max(data.length - 1, 1)) * i;
+    const y = pad.top + ch - ((d.val - minV) / (maxV - minV)) * ch;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + cw, pad.top + ch);
+  ctx.lineTo(pad.left, pad.top + ch);
+  ctx.closePath();
+  ctx.fill();
+
+  // Data points
+  data.forEach((d, i) => {
+    const x = pad.left + (cw / Math.max(data.length - 1, 1)) * i;
+    const y = pad.top + ch - ((d.val - minV) / (maxV - minV)) * ch;
+    ctx.fillStyle = '#0a0a0f';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lineColor;
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // X-axis labels
+  ctx.fillStyle = '#8888a0';
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  const labelInterval = Math.max(1, Math.floor(data.length / 7));
+  data.forEach((d, i) => {
+    if (i % labelInterval === 0 || i === data.length - 1) {
+      const x = pad.left + (cw / Math.max(data.length - 1, 1)) * i;
+      const label = d.date.slice(5); // MM-DD
+      ctx.fillText(label, x, h - 8);
+    }
+  });
+}
+
+function drawBarChart(canvasId, labels, values, opts = {}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !values.length) {
+    if (canvas) {
+      const { ctx, w, h } = setupCanvas(canvas);
+      ctx.fillStyle = '#8888a0';
+      ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Complete workouts to see volume', w/2, h/2);
+    }
+    return;
+  }
+  const { ctx, w, h } = setupCanvas(canvas);
+  const pad = { top: 15, right: 16, bottom: 30, left: 30 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+  const maxV = Math.max(...values, 5);
+
+  ctx.fillStyle = '#12121a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#2a2a3a';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#8888a0';
+    ctx.font = '9px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxV - (maxV / 4) * i), pad.left - 6, y + 3);
+  }
+
+  const barW = Math.min(30, (cw / values.length) * 0.6);
+  const gap = cw / values.length;
+  const colors = ['#6c5ce7', '#00cec9', '#00b894', '#fdcb6e', '#e17055'];
+
+  values.forEach((v, i) => {
+    const barH = (v / maxV) * ch;
+    const x = pad.left + gap * i + (gap - barW) / 2;
+    const y = pad.top + ch - barH;
+    const grad = ctx.createLinearGradient(x, y, x, pad.top + ch);
+    grad.addColorStop(0, colors[i % colors.length]);
+    grad.addColorStop(1, colors[i % colors.length] + '60');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+    ctx.fill();
+
+    // Value on top
+    ctx.fillStyle = '#e8e8f0';
+    ctx.font = 'bold 11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(v, x + barW / 2, y - 4);
+
+    // Label
+    ctx.fillStyle = '#8888a0';
+    ctx.font = '9px -apple-system, sans-serif';
+    ctx.fillText(labels[i], x + barW / 2, h - 8);
+  });
+}
+
+function setWeightRange(range, btn) {
+  weightChartRange = range;
+  document.querySelectorAll('.chart-range-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCharts();
+}
+
+function renderCharts() {
+  const s = getState();
+
+  // === WEIGHT CHART ===
+  let wData = (s.weights || []).map(w => ({ date: w.date, val: w.val }));
+  if (weightChartRange !== 'all' && wData.length) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - weightChartRange);
+    const cutStr = cutoff.toISOString().slice(0, 10);
+    wData = wData.filter(d => d.date >= cutStr);
+  }
+  drawLineChart('weightChart', wData, {
+    color: '#6c5ce7',
+    target: 202,
+    targetLabel: '202 lbs',
+    targetColor: '#00b894'
+  });
+
+  // Weight stats
+  const wStats = document.getElementById('weightChartStats');
+  if (wData.length >= 2) {
+    const first = wData[0].val, last = wData[wData.length - 1].val;
+    const diff = (last - first).toFixed(1);
+    const days = Math.max(1, Math.round((new Date(wData[wData.length-1].date) - new Date(wData[0].date)) / 86400000));
+    const weeklyRate = ((last - first) / (days / 7)).toFixed(2);
+    const avg = (wData.reduce((a, d) => a + d.val, 0) / wData.length).toFixed(1);
+    wStats.innerHTML = `<span style="color:var(--text)">Change: ${diff >= 0 ? '+' : ''}${diff} lbs</span> over ${days} days &nbsp;|&nbsp; Avg: ${avg} lbs &nbsp;|&nbsp; Rate: <span style="color:${weeklyRate >= 0.3 && weeklyRate <= 0.7 ? 'var(--green)' : 'var(--orange)'}">${weeklyRate >= 0 ? '+' : ''}${weeklyRate} lbs/wk</span> ${weeklyRate >= 0.3 && weeklyRate <= 0.7 ? '(on track)' : weeklyRate > 0.7 ? '(too fast — cut 100 cal)' : '(eat more)'}`;
+  } else {
+    wStats.innerHTML = 'Log at least 2 weigh-ins to see trends.';
+  }
+
+  // === WAIST CHART ===
+  const wsData = (s.waists || []).map(w => ({ date: w.date, val: w.val }));
+  drawLineChart('waistChart', wsData, { color: '#00cec9' });
+  const wsStats = document.getElementById('waistChartStats');
+  if (wsData.length >= 2) {
+    const first = wsData[0].val, last = wsData[wsData.length - 1].val;
+    const diff = (last - first).toFixed(1);
+    wsStats.innerHTML = `Change: ${diff >= 0 ? '+' : ''}${diff}" &nbsp;|&nbsp; ${last > first ? '<span style="color:var(--red)">Waist increasing — check if gaining fat</span>' : '<span style="color:var(--green)">Waist stable/decreasing — lean gains</span>'}`;
+  } else {
+    wsStats.innerHTML = 'Measure every Sunday at navel. 2+ entries to see trend.';
+  }
+
+  // === LIFT CHART ===
+  const liftNames = [...new Set((s.lifts || []).map(l => l.name))];
+  const sel = document.getElementById('liftSelect');
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select an exercise...</option>';
+  liftNames.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    if (n === currentVal) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  renderLiftChart();
+
+  // === VOLUME CHART ===
+  renderVolumeChart(s);
+
+  // === BODY COMP CHART ===
+  renderCompChart(s);
+}
+
+function renderLiftChart() {
+  const s = getState();
+  const exercise = document.getElementById('liftSelect').value;
+  const stats = document.getElementById('liftChartStats');
+  if (!exercise) {
+    drawLineChart('liftChart', [], {});
+    if (stats) stats.innerHTML = '';
+    return;
+  }
+  const entries = (s.lifts || []).filter(l => l.name === exercise);
+  // Use estimated 1RM (Epley formula) for comparison: weight * (1 + reps/30)
+  const data = entries.map(e => ({
+    date: e.date,
+    val: Math.round(e.weight * (1 + e.reps / 30))
+  }));
+  drawLineChart('liftChart', data, { color: '#00b894' });
+  if (data.length >= 2 && stats) {
+    const first = data[0].val, last = data[data.length - 1].val;
+    const diff = last - first;
+    const lastEntry = entries[entries.length - 1];
+    stats.innerHTML = `Est. 1RM: <span style="color:var(--text)">${last} lbs</span> (${diff >= 0 ? '+' : ''}${diff} lbs from start) &nbsp;|&nbsp; Last logged: ${lastEntry.weight} x ${lastEntry.reps}`;
+  } else if (stats) {
+    stats.innerHTML = 'Log the same exercise multiple times to see progression.';
+  }
+}
+
+function renderVolumeChart(s) {
+  // Count workouts completed per week from dailyLog
+  const logs = s.dailyLog || {};
+  const weekMap = {};
+  Object.keys(logs).sort().forEach(dk => {
+    const d = new Date(dk + 'T12:00:00');
+    // Get week start (Sunday)
+    const ws = new Date(d);
+    ws.setDate(d.getDate() - d.getDay());
+    const weekKey = ws.toISOString().slice(5, 10);
+    const exercisesDone = Object.values(logs[dk].exercises || {}).filter(Boolean).length;
+    if (exercisesDone > 0) {
+      weekMap[weekKey] = (weekMap[weekKey] || 0) + 1;
+    }
+  });
+  const weeks = Object.keys(weekMap).slice(-8);
+  const vals = weeks.map(w => weekMap[w]);
+  drawBarChart('volumeChart', weeks, vals);
+}
+
+function renderCompChart(s) {
+  const weights = s.weights || [];
+  const waists = s.waists || [];
+  const stats = document.getElementById('compChartStats');
+
+  if (weights.length < 2) {
+    drawLineChart('compChart', [], {});
+    if (stats) stats.innerHTML = 'Estimates lean mass vs fat mass based on weight + waist data. Need 2+ weigh-ins to calculate. Navy method body fat estimation uses waist measurement.';
+    return;
+  }
+
+  // Estimate body composition over time
+  // Using simplified Navy method approximation for males:
+  // BF% ≈ 86.010 × log10(waist) - 70.041 × log10(height) + 36.76
+  // Height = 71 inches (5'11")
+  const heightIn = 71;
+  const logH = Math.log10(heightIn);
+
+  // Get the latest waist or use a default estimate
+  const latestWaist = waists.length ? waists[waists.length - 1].val : null;
+
+  const data = weights.map(w => {
+    // Find closest waist measurement
+    let waistVal = latestWaist || 33; // default estimate
+    if (waists.length) {
+      const closest = waists.reduce((best, ws) => {
+        const diff = Math.abs(new Date(ws.date) - new Date(w.date));
+        return diff < best.diff ? { val: ws.val, diff } : best;
+      }, { val: waists[0].val, diff: Infinity });
+      waistVal = closest.val;
+    }
+    const bf = 86.010 * Math.log10(waistVal) - 70.041 * logH + 36.76;
+    const bfClamped = Math.max(5, Math.min(35, bf));
+    const leanMass = w.val * (1 - bfClamped / 100);
+    return { date: w.date, val: parseFloat(leanMass.toFixed(1)) };
+  });
+
+  drawLineChart('compChart', data, {
+    color: '#e17055',
+    target: 175,
+    targetLabel: '175 lbs lean',
+    targetColor: '#fdcb6e'
+  });
+
+  if (data.length && stats) {
+    const current = data[data.length - 1];
+    const currentWeight = weights[weights.length - 1].val;
+    const fatMass = (currentWeight - current.val).toFixed(1);
+    const bfPct = ((fatMass / currentWeight) * 100).toFixed(1);
+    stats.innerHTML = `
+      <span style="color:var(--text)">Est. Lean Mass: ${current.val} lbs</span> &nbsp;|&nbsp; Fat Mass: ~${fatMass} lbs &nbsp;|&nbsp; BF%: ~${bfPct}%<br>
+      <span style="font-size:11px;">Estimates use Navy method (waist + height). ${waists.length ? '' : 'Add waist measurements for better accuracy.'} Log consistently for reliable trends.</span>
+    `;
+  }
 }
 
 // ===== INIT =====
