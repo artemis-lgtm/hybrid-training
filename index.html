@@ -215,6 +215,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="sub-tab" onclick="switchSkin('skinPm')">PM</div>
       <div class="sub-tab" onclick="switchSkin('skinWeekly')">Weekly</div>
       <div class="sub-tab" onclick="switchSkin('skinShop')">Shop List</div>
+      <div class="sub-tab" onclick="switchSkin('skinDebloat')">De-Bloat</div>
     </div>
     <div id="skinAm" class="sub-section active">
       <div class="card"><div class="card-title">Morning Routine <span style="font-size:11px;color:var(--muted);font-weight:400;">(post-workout shower)</span></div><div id="skinAmList"></div>
@@ -235,6 +236,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div id="skinShop" class="sub-section">
       <div class="card"><div class="card-title">Shopping List <span class="badge new-badge">NEW ITEMS</span></div><div id="skinShopList"></div>
       <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700;"><span>Total</span><span style="color:var(--orange);">~$194</span></div></div>
+    </div>
+    <div id="skinDebloat" class="sub-section">
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--accent2)"></span>AM De-Bloat Protocol <span style="font-size:11px;color:var(--muted);font-weight:400;">(5 min)</span></div><div id="debloatAmList"></div>
+      <div class="tip">Do this BEFORE your skincare routine. The gua sha moves lymph fluid that pools overnight. Results are visible immediately -- your jawline will look noticeably sharper.</div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Diet & Lifestyle Levers</div><div id="debloatDietList"></div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Body Acne Protocol</div><div id="debloatAcneList"></div>
+      <div class="tip">Give the OTC approach 6-8 weeks. If chest/back doesn't clear, low-dose Accutane (10-20mg/day via derm) is the next step. Pause Olay Retinol if you go that route -- both are vitamin A derivatives.</div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--pink)"></span>Shopping List (De-Bloat + Body)</div><div id="debloatShopList"></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700;"><span>Total</span><span style="color:var(--orange);">~$45</span></div></div>
     </div>
   </div>
 
@@ -550,6 +560,32 @@ const SKIN_SHOP = [
   {name:'The Ordinary Caffeine 5% + EGCG', price:'$8', where:'Ulta/Sephora'},
   {name:'OMRE NMN + Resveratrol (oral supp)', price:'$45', where:'Amazon'},
 ];
+const DEBLOAT_AM = [
+  {num:1, name:'Ice Water Face Dunk', detail:'Fill bowl with ice water. Submerge face 15-30 seconds, repeat 2-3x. Instant vasoconstriction -- tightens and depuffs immediately.', tool:'Bowl + ice (or ice roller from freezer)'},
+  {num:2, name:'Coffee', detail:'Caffeine is a natural diuretic + vasoconstrictor. Genuinely one of the best de-bloating tools. Drink it black or with minimal additions.', tool:'Your regular coffee'},
+  {num:3, name:'Gua Sha Lymphatic Drainage', detail:'3-5 min with stainless steel gua sha tool. Use COSRX Snail Mucin as slip. Always stroke OUTWARD and DOWNWARD toward ears, then down the sides of neck to collarbone (lymph nodes drain there). Start from center of face, work outward. Jawline: chin to ear. Cheeks: nose to ear. Forehead: center to temples. Finish: behind ear, down neck to collarbone.', tool:'Stainless steel gua sha (~$12)'},
+  {num:4, name:'Continue AM Skincare', detail:'Now do your normal AM routine: cleanser, vitamin C, niacinamide, SPF. The gua sha moved the fluid -- skincare absorbs better on de-puffed skin.', tool:''},
+];
+const DEBLOAT_DIET = [
+  {name:'Water: 1 Gallon/Day Minimum', detail:'Counterintuitive but flooding your body with water signals it to RELEASE stored water. Dehydration = retention. Carry a gallon jug.', icon:'W'},
+  {name:'Sodium Under 2,300mg', detail:'Track for one week. Restaurant food, sauces, and seasoning packets are hidden sodium bombs. Your clean meal plan is fine -- watch the extras.', icon:'Na'},
+  {name:'Front-Load Carbs', detail:'Every 1g glycogen stores 3-4g water. Your late meals (pasta at 8:30 PM, banana at 10:30 PM) may cause AM puffiness. Shift more carbs to meals 1-3.', icon:'C'},
+  {name:'Potassium-Rich Foods', detail:'Potassium counteracts sodium. Bananas, sweet potatoes, salmon, avocado -- you already eat most of these. Keep it up.', icon:'K'},
+  {name:'Sleep Slightly Elevated', detail:'One extra pillow or raise head of bed 15-20 degrees. Gravity drains fluid from face overnight instead of letting it pool.', icon:'S'},
+  {name:'Dairy Test (Optional)', detail:'Dairy is a common inflammatory trigger for facial bloat. Try cutting it for 2 weeks as a test. If puffiness drops noticeably, you have your answer.', icon:'D'},
+];
+const DEBLOAT_ACNE = [
+  {num:1, name:'Benzoyl Peroxide Body Wash', brand:'PanOxyl 5% Creamy Wash', detail:'In the shower: apply to chest and back, let sit 2-3 minutes, then rinse. The contact time is critical -- don\'t just lather and rinse. Use daily.', price:'~$12'},
+  {num:2, name:'BHA Body Treatment', brand:'COSRX BHA Blackhead Power Liquid', detail:'2x/week after shower: apply to chest/back with cotton pad. You already have this for your face. Same product, new real estate.', price:'(already own)'},
+  {num:3, name:'Clean Shirts Daily', detail:'Change undershirts/workout shirts every single day. Bacteria on fabric reinfects pores. If you re-wear gym shirts, stop immediately.', price:'--'},
+  {num:4, name:'Shower Immediately Post-Workout', detail:'Sweat + bacteria + time = body acne. Don\'t sit in sweaty clothes. Shower within 30 min of finishing training.', price:'--'},
+];
+const DEBLOAT_SHOP = [
+  {name:'Stainless Steel Gua Sha Tool', price:'$12', where:'Amazon'},
+  {name:'Ice Roller (keep in freezer)', price:'$10', where:'Amazon'},
+  {name:'PanOxyl 5% Creamy BP Wash', price:'$12', where:'Amazon/Target/CVS'},
+  {name:'CeraVe Healing Ointment (for lips if Accutane)', price:'$11', where:'Amazon/Target'},
+];
 const SUPPLEMENTS = [
   {name:'Creatine Monohydrate', dose:'5g', time:'AM', note:'Saturation dose. Mix in water/shake. Daily -- never skip.'},
   {name:'Tongkat Ali', dose:'500mg', time:'AM', note:'Testosterone + recovery. Standardized 2% eurycomanone.'},
@@ -615,6 +651,7 @@ function switchSkin(id) {
   document.querySelectorAll('#skincare .sub-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
+  if (id==='skinDebloat') renderDebloat();
 }
 function switchNutr(id) {
   document.querySelectorAll('#nutrition .sub-section').forEach(s=>s.classList.remove('active'));
@@ -670,6 +707,30 @@ function renderSkinWeekly() { document.getElementById('skinWeeklyList').innerHTM
 function renderSkinShop() { document.getElementById('skinShopList').innerHTML = SKIN_SHOP.map((s,i)=>`<div class="skin-step"><div class="step-num new">${i+1}</div><div class="info"><div class="product-name">${s.name}</div><div class="product-detail">${s.where}</div></div><div style="font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;">${s.price}</div></div>`).join(''); }
 function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); }
 function toggleRetinol() { const s=getState(); s.retinolNight=!s.retinolNight; saveState(s); renderSkinPm(); }
+
+// ========== DE-BLOAT ==========
+function renderDebloat() {
+  // AM Protocol
+  document.getElementById('debloatAmList').innerHTML = DEBLOAT_AM.map(item => {
+    const s = getState();
+    const k = today()+'_debloat_'+item.num;
+    const done = s.skinChecks[k];
+    return `<div class="skin-step"><div class="step-num" style="background:var(--accent2);">${item.num}</div><div class="info"><div class="product-name">${item.name}</div><div class="product-detail">${item.detail}</div>${item.tool?'<div class="product-brand">'+item.tool+'</div>':''}</div><div class="check ${done?'done':''}" onclick="toggleSkinCheck('debloat_${item.num}')"></div></div>`;
+  }).join('');
+  // Diet Levers
+  document.getElementById('debloatDietList').innerHTML = DEBLOAT_DIET.map(item => {
+    return `<div class="skin-step"><div class="step-num" style="background:var(--green);font-size:10px;">${item.icon}</div><div class="info"><div class="product-name">${item.name}</div><div class="product-detail">${item.detail}</div></div></div>`;
+  }).join('');
+  // Acne Protocol
+  document.getElementById('debloatAcneList').innerHTML = DEBLOAT_ACNE.map(item => {
+    const s = getState();
+    const k = today()+'_acne_'+item.num;
+    const done = s.skinChecks[k];
+    return `<div class="skin-step"><div class="step-num" style="background:var(--orange);">${item.num}</div><div class="info"><div class="product-name">${item.name}</div>${item.brand?'<div class="product-brand">'+item.brand+'</div>':''}<div class="product-detail">${item.detail}</div>${item.price&&item.price!=='--'&&item.price!=='(already own)'?'<div class="product-price">'+item.price+'</div>':''}</div><div class="check ${done?'done':''}" onclick="toggleSkinCheck('acne_${item.num}')"></div></div>`;
+  }).join('');
+  // Shop
+  document.getElementById('debloatShopList').innerHTML = DEBLOAT_SHOP.map((s,i)=>`<div class="skin-step"><div class="step-num new">${i+1}</div><div class="info"><div class="product-name">${s.name}</div><div class="product-detail">${s.where}</div></div><div style="font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;">${s.price}</div></div>`).join('');
+}
 
 // ========== SUPPLEMENTS ==========
 function renderSupps() {
