@@ -266,7 +266,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <div class="stat-box"><div class="val" id="carbVal">0g</div><div class="label">Carbs</div></div>
           <div class="stat-box"><div class="val" id="fatVal">0g</div><div class="label">Fat</div></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px;">Target: 3,150 cal / 180g P / 370g C / 70g F</div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px;">Target: 3,150 cal / 240g P / 300g C / 88g F</div>
       </div>
       <div class="card"><div class="card-title">6-Meal Plan</div><div id="mealPlanCards"></div></div>
     </div>
@@ -506,6 +506,10 @@ function buildPlan(periodOverride) {
     {name:'Push-ups', detail:'To failure x 3-4 sets', tag:'compound'},
   ];
 
+  // Prepend couch stretch to every training day
+  const couchStretch = {name:'Couch Stretch (Hip Flexor)', detail:'2x90s each side -- squeeze glute HARD the entire time. Don\'t arch lower back.', tag:''};
+  [tue, wed, thu, fri, sat].forEach(arr => arr.unshift(couchStretch));
+
   const tueType = dl ? 'deload' : (tueH ? 'strength' : 'hyper');
   const wedType = dl ? 'deload' : (wedH ? 'power' : 'hyper');
   const dlSuffix = dl ? ' [DELOAD]' : '';
@@ -598,12 +602,12 @@ const SUPPLEMENTS = [
   {name:'Casein Protein', dose:'30g', time:'Before bed', note:'Slow-release protein. 8hr muscle protein synthesis while sleeping.'},
 ];
 const MEALS = [
-  {name:'Meal 1 -- Post-Workout', time:'~10:30 AM', cal:650, p:50, c:70, f:15, desc:'4 whole eggs scrambled, 2 slices Ezekiel toast, 1 cup oats w/ banana + honey'},
-  {name:'Meal 2 -- Lunch', time:'~1:00 PM', cal:600, p:45, c:55, f:18, desc:'8oz chicken breast, 1.5 cups jasmine rice, broccoli, 1 tbsp olive oil'},
-  {name:'Meal 3 -- Snack', time:'~3:30 PM', cal:400, p:30, c:45, f:10, desc:'Greek yogurt (1.5 cups), granola, mixed berries, drizzle honey'},
-  {name:'Meal 4 -- Dinner', time:'~6:00 PM', cal:650, p:50, c:60, f:18, desc:'8oz salmon/steak, sweet potato, asparagus, side salad w/ olive oil'},
-  {name:'Meal 5 -- Evening', time:'~8:30 PM', cal:450, p:25, c:55, f:12, desc:'Whole wheat pasta (2oz dry), ground turkey, marinara, side of veggies'},
-  {name:'Meal 6 -- Pre-Bed', time:'~10:30 PM', cal:400, p:35, c:30, f:15, desc:'Casein shake (30g), 2 tbsp PB, banana -- slow protein overnight'},
+  {name:'Meal 1 -- Pre-Workout', time:'~7:30 AM', cal:450, p:30, c:35, f:18, desc:'4 whole eggs scrambled + 1 slice Ezekiel toast. Light enough to digest before training.'},
+  {name:'Meal 2 -- Post-Workout', time:'~10:30 AM', cal:700, p:50, c:85, f:12, desc:'1.5 cups oats w/ banana + honey, protein shake (40g whey). Carb-heavy recovery window.'},
+  {name:'Meal 3 -- Lunch', time:'~1:00 PM', cal:600, p:45, c:55, f:18, desc:'8oz chicken breast, 1.5 cups jasmine rice, broccoli, 1 tbsp olive oil'},
+  {name:'Meal 4 -- Snack', time:'~3:30 PM', cal:400, p:30, c:45, f:10, desc:'Greek yogurt (1.5 cups), granola, mixed berries, drizzle honey'},
+  {name:'Meal 5 -- Dinner', time:'~6:00 PM', cal:650, p:50, c:60, f:18, desc:'8oz salmon/steak, sweet potato, asparagus, side salad w/ olive oil'},
+  {name:'Meal 6 -- Pre-Bed', time:'~10:00 PM', cal:350, p:35, c:20, f:12, desc:'Casein shake (30g), 2 tbsp PB -- slow protein overnight. Keep carbs low here for less AM puffiness.'},
 ];
 const APT_STRETCHES = [
   {name:'Hip Flexor Stretch (Couch Stretch)', detail:'2x60s each side. Back knee on cushion, squeeze glute, lean forward. This is the #1 APT fix.', tag:'stretch'},
