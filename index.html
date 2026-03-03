@@ -1267,6 +1267,178 @@ function init() {
   updateProgress();
 }
 init();
+
+// ========== RESEARCH VAULT PANEL ==========
+(function(){
+const vaultCSS = `
+.vault-toggle{position:fixed;bottom:16px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(108,92,231,.85);border:1px solid rgba(108,92,231,.5);color:#fff;font-size:18px;cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,.4);transition:transform .2s}
+.vault-toggle:hover{transform:scale(1.1)}
+.vault-panel{position:fixed;bottom:70px;right:16px;width:340px;max-height:70vh;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;z-index:9998;display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.vault-panel.open{display:flex}
+.vault-hdr{padding:12px 14px;background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(0,206,201,.08));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.vault-hdr h3{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);margin:0}
+.vault-body{overflow-y:auto;padding:12px 14px;flex:1}
+.vault-cat{margin-bottom:14px}
+.vault-cat-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent2);margin-bottom:6px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.vault-cat-title::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%}
+.vault-cat.tier-s .vault-cat-title::before{background:#00b894}
+.vault-cat.tier-a .vault-cat-title::before{background:#6c5ce7}
+.vault-cat.tier-b .vault-cat-title::before{background:#fdcb6e}
+.vault-cat.tier-c .vault-cat-title::before{background:#8888a0}
+.vault-item{padding:6px 0;border-bottom:1px solid rgba(42,42,58,.5)}
+.vault-item:last-child{border-bottom:none}
+.vault-name{font-size:12px;font-weight:700;color:var(--text)}
+.vault-mech{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+.vault-ev{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;margin-top:3px;font-weight:600}
+.vault-ev.human{background:rgba(0,184,148,.15);color:#00b894}
+.vault-ev.preclinical{background:rgba(108,92,231,.15);color:#a29bfe}
+.vault-ev.invitro{background:rgba(253,203,110,.15);color:#fdcb6e}
+.vault-note{font-size:10px;color:var(--muted);padding:8px 0 4px;line-height:1.5;border-top:1px solid var(--border);margin-top:6px}
+.vault-note b{color:var(--text)}
+`;
+const style=document.createElement('style');style.textContent=vaultCSS;document.head.appendChild(style);
+
+const vaultHTML = `
+<button class="vault-toggle" id="vaultToggle" title="Research Vault">&#128300;</button>
+<div class="vault-panel" id="vaultPanel">
+<div class="vault-hdr"><h3>Research Vault -- Cancer</h3></div>
+<div class="vault-body">
+
+<div class="vault-cat tier-s"><div class="vault-cat-title">TIER S -- Strongest Evidence</div>
+
+<div class="vault-item">
+<div class="vault-name">Fenbendazole (FBZ)</div>
+<div class="vault-mech">Microtubule disruption (same as taxol), apoptosis induction, cell cycle arrest at G2/M, blocks glucose uptake via GLUT4. Targets cancer stem cells.</div>
+<div class="vault-ev human">HUMAN CASE SERIES (Karger 2025)</div>
+<div class="vault-mech">3 advanced cancer patients: 2 complete remission, 1 near-complete. 83yo stage 4 breast (lungs/liver/spine) -- PET clean at 5 months on 222mg/day. Cancer-free 3+ years. Published in Case Reports in Oncology. 170+ anecdotal reports reviewed (2023-2025). Dose: 222-444mg/day, 6 days on 1 off.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Ivermectin (IVM)</div>
+<div class="vault-mech">Inhibits Wnt/beta-catenin + Akt/mTOR pathways. Converts "cold" tumors "hot" (visible to immune system). Synergizes with anti-PD1 immunotherapy. Induces autophagy + apoptosis via PAK1 kinase.</div>
+<div class="vault-ev human">CLINICAL TRIAL (NCT05318469)</div>
+<div class="vault-mech">Nature 2021: synergistic with checkpoint blockade in breast cancer. Jan 2025: eradicates pancreatic cancer cells with rMETase. 36 cancer patient cases reviewed (2025). Dose: 24mg/day or up to 1mg/kg/day for aggressive cancers.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">High-Dose IV Vitamin C</div>
+<div class="vault-mech">Pro-oxidative cytotoxicity at pharmacological doses (generates H2O2 selectively in cancer cells). Epigenetic regulation. Immune modulation. Enhances chemo efficacy.</div>
+<div class="vault-ev human">PHASE 2 TRIAL (U of Iowa 2024)</div>
+<div class="vault-mech">Phase 2 RCT: IV Vitamin C + chemo DOUBLED survival in metastatic pancreatic cancer (8 months to 16 months). Published Redox Biology Nov 2024. NCI clinical trial active. Requires IV administration -- oral doesn't reach therapeutic blood levels.</div>
+</div>
+
+</div>
+
+<div class="vault-cat tier-a"><div class="vault-cat-title">TIER A -- Strong Preclinical + Some Human</div>
+
+<div class="vault-item">
+<div class="vault-name">Methylene Blue (MB)</div>
+<div class="vault-mech">Targets mitochondrial Complex IV, disrupts cancer cell metabolism. Photodynamic therapy activates ROS generation. Increases tumor oxygenation (sensitizes to treatment).</div>
+<div class="vault-ev preclinical">PRECLINICAL + PDT HUMAN</div>
+<div class="vault-mech">2024 MDPI: outperformed carboplatin in chemo-resistant ovarian cancer model. Systematic review: effective against colorectal, melanoma, carcinoma via PDT. NCI trial for cancer pain (NCT pending).</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Curcumin (Liposomal)</div>
+<div class="vault-mech">NF-kB inhibitor, anti-angiogenic, induces apoptosis, epigenetic modulator. Part of original Joe Tippens protocol. Synergizes with EGCG and fenbendazole.</div>
+<div class="vault-ev preclinical">PRECLINICAL + PROTOCOL</div>
+<div class="vault-mech">Key component of Tippens protocol (stage 4 SCLC remission). Must be liposomal or with piperine -- standard curcumin has ~1% bioavailability. Dose: 500-1000mg liposomal form.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Melatonin (High-Dose)</div>
+<div class="vault-mech">Suppresses PD-L1 expression, apoptosis induction, inhibits proliferation + metastasis. Reduces chemo side effects. Anti-angiogenic.</div>
+<div class="vault-ev human">META-ANALYSIS (HUMAN)</div>
+<div class="vault-mech">Meta-analysis: 40% reduction in 1-year mortality when combined with chemo (RR=0.60). Nature 2025: suppresses PD-L1 in liver cancer. Inhibits pancreatic tumor growth by 65% in mice. Dose: 20-40mg at bedtime (10-20x normal sleep dose).</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Artemisinin (Sweet Wormwood)</div>
+<div class="vault-mech">Iron-dependent ROS generation -- cancer cells hoard iron, artemisinin exploits this to selectively kill them. Induces ferroptosis. Inhibits PI3K/AKT pathway. Nobel Prize compound (malaria).</div>
+<div class="vault-ev preclinical">PRECLINICAL + CLINICAL REVIEW</div>
+<div class="vault-mech">Nature 2025: artemisinin derivatives induce ferroptosis in lung cancer. Effective against melanoma, breast, leukemia in preclinical models. Scoping review (2024): therapeutic effects confirmed across viruses, tumors, inflammation.</div>
+</div>
+
+</div>
+
+<div class="vault-cat tier-b"><div class="vault-cat-title">TIER B -- Solid Mechanism, Building Evidence</div>
+
+<div class="vault-item">
+<div class="vault-name">Berberine</div>
+<div class="vault-mech">AMPK activator, restricts glucose uptake (mimics metformin), inhibits IL6/STAT3 pathway. Anti-proliferative + anti-metastatic.</div>
+<div class="vault-ev preclinical">PRECLINICAL</div>
+<div class="vault-mech">Nature 2025: inhibits proliferation + metastasis of gallbladder cancer. Key add-on in Makis protocol. Dose: 500-600mg/day with meals.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">DCA (Dichloroacetate)</div>
+<div class="vault-mech">Reverses Warburg effect -- forces cancer cells from glycolysis back to oxidative phosphorylation, triggering apoptosis. Reactivates mitochondria cancer cells have shut down.</div>
+<div class="vault-ev preclinical">PRECLINICAL + EARLY HUMAN</div>
+<div class="vault-mech">Synergistic with fenbendazole in A549 lung cancer cells (2024). Attacks cancer's core metabolic vulnerability. Dose: varies, prescription required in most countries.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">EGCG (Green Tea Extract)</div>
+<div class="vault-mech">MMP-2/MMP-9 inhibitor (blocks invasion/metastasis), arrests cell cycle, synergizes with curcumin + quercetin. Epigenetic modulator.</div>
+<div class="vault-ev preclinical">PRECLINICAL</div>
+<div class="vault-mech">Eliminates advanced pancreatic cancer cells when combined with sulforaphane + quercetin via miR-let-7 induction. Part of updated Tippens "Onco-Adjunct" pathway. Dose: 400-800mg standardized extract.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Quercetin</div>
+<div class="vault-mech">Senolytic (kills senescent cells), inhibits cancer cell growth, enhances EGCG anti-metabolic effect in ER-negative breast cancer. Anti-inflammatory.</div>
+<div class="vault-ev preclinical">PRECLINICAL</div>
+<div class="vault-mech">Synergistic with EGCG and sulforaphane. K-ras inhibition in pancreatic cancer. Dose: 500-1000mg/day.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Sulforaphane (Broccoli Extract)</div>
+<div class="vault-mech">Nrf2 activator, induces Phase II detox enzymes, epigenetic modulator (HDAC inhibitor), targets cancer stem cells.</div>
+<div class="vault-ev preclinical">PRECLINICAL</div>
+<div class="vault-mech">Complements quercetin + EGCG in eliminating pancreatic cancer. Best from broccoli sprouts or myrosinase-activated supplements.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">CBD (Cannabidiol)</div>
+<div class="vault-mech">Induces apoptosis, anti-angiogenic, anti-proliferative. Part of original Tippens protocol alongside fenbendazole + curcumin.</div>
+<div class="vault-ev preclinical">PRECLINICAL + PROTOCOL</div>
+<div class="vault-mech">CBD-enriched cannabis oil used in Tippens' stage 4 SCLC remission. Anti-tumor effects documented across breast, glioma, lung models.</div>
+</div>
+
+</div>
+
+<div class="vault-cat tier-c"><div class="vault-cat-title">COMBO PROTOCOLS</div>
+
+<div class="vault-item">
+<div class="vault-name">Joe Tippens Protocol (Original)</div>
+<div class="vault-mech">Fenbendazole 222mg (3 days on, 4 off) + Curcumin 600mg + CBD oil + Vitamin E 800IU. Stage 4 SCLC remission.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Dr. Makis Protocol (2025 Updated)</div>
+<div class="vault-mech">IVM 24mg/day + FBZ 444mg/day (or Mebendazole 500mg) + Berberine 500mg + Vitamin D 10-20K IU + Liposomal Curcumin. Minimum 1-2 years. 61 prostate cancer patients documented.</div>
+</div>
+
+<div class="vault-item">
+<div class="vault-name">Metabolic Starvation Stack</div>
+<div class="vault-mech">Berberine (glucose restriction) + DCA (reverse Warburg) + FBZ (GLUT4 block) + Ketogenic diet. Attacks cancer's metabolic dependencies from 4 angles simultaneously.</div>
+</div>
+
+</div>
+
+<div class="vault-note"><b>Why no pharma trials?</b> All compounds listed are off-patent generics or supplements. A phase 3 trial costs $500M+. No ROI on a $5 dewormer. The financial incentive to prove these work doesn't exist -- the incentive to dismiss them does.<br><br><b>Disclaimer:</b> This is a personal research reference. Not medical advice. These compounds show real preclinical and emerging clinical evidence but have not completed full FDA-approved clinical trials for cancer indications. Best used as adjuncts alongside conventional treatment, not replacements.</div>
+
+</div>
+</div>
+`;
+
+const wrapper=document.createElement('div');wrapper.innerHTML=vaultHTML;
+while(wrapper.firstChild) document.body.appendChild(wrapper.firstChild);
+
+document.getElementById('vaultToggle').addEventListener('click',()=>{
+  document.getElementById('vaultPanel').classList.toggle('open');
+});
+})();
 </script>
 </body>
 </html>
