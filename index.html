@@ -194,6 +194,46 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .next-preview { margin-top:8px; padding:12px; background:var(--surface); border-radius:8px; border:1px dashed var(--border); }
 .next-preview .np-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:6px; }
 .next-preview .np-item { font-size:12px; color:var(--text); padding:2px 0; }
+
+/* Gamification */
+.game-bar { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface); border-radius:10px; margin-top:12px; border:1px solid var(--border); }
+.game-ring { position:relative; width:44px; height:44px; flex-shrink:0; }
+.game-ring svg { transform:rotate(-90deg); }
+.game-ring .ring-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+.game-stats { flex:1; display:flex; flex-direction:column; gap:2px; }
+.game-level { font-size:13px; font-weight:700; }
+.game-level .lvl-num { color:var(--accent); }
+.game-level .lvl-title { color:var(--muted); font-size:11px; font-weight:400; margin-left:6px; }
+.game-xp-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.game-xp-fill { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:3px; transition:width .5s ease; }
+.game-xp-text { font-size:10px; color:var(--muted); }
+.game-streak { text-align:center; flex-shrink:0; min-width:40px; }
+.game-streak .streak-num { font-size:20px; font-weight:800; color:var(--orange); }
+.game-streak .streak-label { font-size:9px; color:var(--muted); text-transform:uppercase; }
+
+/* Completion overlay */
+.completion-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:250; align-items:center; justify-content:center; }
+.completion-overlay.show { display:flex; }
+.completion-card { background:var(--card); border:2px solid var(--accent); border-radius:16px; padding:32px 24px; width:90%; max-width:360px; text-align:center; animation:compIn .4s ease, glowPulse 2s ease .4s infinite; box-shadow:0 0 40px rgba(108,92,231,.3), 0 0 80px rgba(108,92,231,.1); }
+@keyframes compIn { from { opacity:0; transform:scale(.92); } to { opacity:1; transform:scale(1); } }
+@keyframes glowPulse { 0%,100% { box-shadow:0 0 40px rgba(108,92,231,.3); } 50% { box-shadow:0 0 60px rgba(108,92,231,.5), 0 0 100px rgba(0,206,201,.2); } }
+.completion-header { font-size:12px; font-weight:700; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:4px; }
+.completion-pct { font-size:52px; font-weight:900; background:linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:16px; line-height:1; }
+.completion-stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:20px; }
+.cs-item { background:var(--surface); border-radius:8px; padding:10px 4px; }
+.cs-val { font-size:18px; font-weight:800; }
+.cs-label { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+.completion-xp { margin-bottom:20px; }
+.xp-earned { font-size:28px; font-weight:900; color:var(--green); }
+.xp-level { font-size:12px; color:var(--muted); margin-top:4px; }
+.completion-dismiss { background:linear-gradient(135deg, var(--accent), #5a4bd1); border:none; color:var(--white); padding:12px 32px; border-radius:10px; font-size:14px; font-weight:700; letter-spacing:1px; cursor:pointer; text-transform:uppercase; transition:all .2s; }
+.completion-dismiss:active { transform:scale(.97); }
+
+/* Section complete toast */
+.section-toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.9); background:var(--card); border:1px solid var(--accent); border-radius:12px; padding:16px 28px; text-align:center; z-index:240; opacity:0; transition:all .3s ease; pointer-events:none; box-shadow:0 0 30px rgba(108,92,231,.2); }
+.section-toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.section-toast .st-title { font-size:10px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; }
+.section-toast .st-xp { font-size:20px; font-weight:800; color:var(--green); margin-top:4px; }
 </style>
 </head>
 <body>
@@ -201,6 +241,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div class="header">
     <h1>Health Hub</h1>
     <div class="subtitle">Austin's Optimization Dashboard</div>
+    <div class="game-bar" id="gameBar">
+      <div class="game-ring">
+        <svg width="44" height="44" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="3.5"/>
+          <circle id="progressRing" cx="22" cy="22" r="18" fill="none" stroke="url(#ringGrad)" stroke-width="3.5" stroke-dasharray="113.1" stroke-dashoffset="113.1" stroke-linecap="round"/>
+          <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs>
+        </svg>
+        <div class="ring-text" id="ringPct">0%</div>
+      </div>
+      <div class="game-stats">
+        <div class="game-level">LVL <span class="lvl-num" id="lvlNum">1</span><span class="lvl-title" id="lvlTitle">Beginner</span></div>
+        <div class="game-xp-bar"><div class="game-xp-fill" id="xpFill" style="width:0%"></div></div>
+        <div class="game-xp-text"><span id="xpText">0 / 200 XP</span></div>
+      </div>
+      <div class="game-streak">
+        <div class="streak-num" id="streakNum">0</div>
+        <div class="streak-label">streak</div>
+      </div>
+    </div>
   </div>
   <div class="main-tabs">
     <div class="main-tab active" onclick="switchMain('skincare')">Skincare</div>
@@ -318,6 +377,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
   </div>
 </div>
+
+<div class="completion-overlay" id="completionOverlay">
+  <div class="completion-card">
+    <div class="completion-header">day complete</div>
+    <div class="completion-pct">100%</div>
+    <div class="completion-stats">
+      <div class="cs-item"><div class="cs-val" id="compEx">0</div><div class="cs-label">Exercises</div></div>
+      <div class="cs-item"><div class="cs-val" id="compMeals">0</div><div class="cs-label">Meals</div></div>
+      <div class="cs-item"><div class="cs-val" id="compSupps">0</div><div class="cs-label">Supps</div></div>
+      <div class="cs-item"><div class="cs-val" id="compStreak">0</div><div class="cs-label">Streak</div></div>
+    </div>
+    <div class="completion-xp">
+      <div class="xp-earned">+<span id="compXpEarned">0</span> XP</div>
+      <div class="xp-level" id="compLevelText"></div>
+    </div>
+    <button class="completion-dismiss" onclick="dismissCompletion()">CONTINUE</button>
+  </div>
+</div>
+<div class="section-toast" id="sectionToast"><div class="st-title" id="stTitle"></div><div class="st-xp" id="stXp"></div></div>
 
 <div class="modal-overlay" id="editModal"><div class="modal"><h3 id="modalTitle">Edit Exercise</h3><input type="text" id="modalName" placeholder="Exercise name"><textarea id="modalDetail" placeholder="Details"></textarea><div class="modal-btns"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="saveModal()">Save</button></div></div></div>
 <div class="toast" id="toast"></div>
@@ -634,13 +712,123 @@ const STORAGE_KEY = 'healthHub';
 function getState() {
   let raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) { raw = localStorage.getItem('hybridApp'); if (raw) { localStorage.setItem(STORAGE_KEY, raw); localStorage.removeItem('hybridApp'); } }
-  const def = { skinChecks:{}, suppChecks:{}, mealChecks:{}, exerciseChecks:{}, retinolNight:false, dailyLog:{}, weightLog:[], waistLog:[], liftLog:[], plan:null };
+  const def = { skinChecks:{}, suppChecks:{}, mealChecks:{}, exerciseChecks:{}, retinolNight:false, dailyLog:{}, weightLog:[], waistLog:[], liftLog:[], plan:null, xp:0, completedDays:[], completionShown:{} };
   if (!raw) return def;
   try { return {...def, ...JSON.parse(raw)}; } catch(e) { return def; }
 }
 function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function today() { return new Date().toISOString().slice(0,10); }
+
+// ========== GAMIFICATION ==========
+const LEVEL_THRESHOLDS = [0,200,500,1000,1800,3000,4500,6500,9000,12000,16000,21000];
+const LEVEL_TITLES = ['Beginner','Dedicated','Consistent','Warrior','Elite','Iron Will','Unstoppable','Legendary','Mythic','Transcendent','Ascended','Immortal'];
+const XP_VALUES = { exercise:10, meal:8, supplement:5, skincare:5, debloat:8, acne:5, dayComplete:200 };
+
+function getLevel(xp) {
+  let lvl=0;
+  for(let i=0;i<LEVEL_THRESHOLDS.length;i++){if(xp>=LEVEL_THRESHOLDS[i])lvl=i;else break;}
+  const curr=LEVEL_THRESHOLDS[lvl];
+  const next=LEVEL_THRESHOLDS[lvl+1]||LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length-1]+5000;
+  return {level:lvl+1, title:LEVEL_TITLES[lvl]||'Immortal', curr, next, progress:Math.min(1,(xp-curr)/(next-curr))};
+}
+
+function getStreak(s) {
+  const days=s.completedDays||[];
+  if(!days.length)return 0;
+  let streak=0;
+  const d=new Date();d.setHours(0,0,0,0);
+  if(days.includes(today()))streak++;
+  let check=new Date(d);check.setDate(check.getDate()-1);
+  while(days.includes(check.toISOString().slice(0,10))){streak++;check.setDate(check.getDate()-1);}
+  return streak;
+}
+
+function getDailyProgress() {
+  const s=getState();const d=today();
+  const plan=buildPlan();const dayKeys=['sun','mon','tue','wed','thu','fri','sat'];
+  const dk=dayKeys[new Date().getDay()];
+  const exercises=plan[dk].exercises||[];
+  let done=0,total=0,exDone=0,mealDone=0,suppDone=0;
+  exercises.forEach((_,i)=>{total++;if(s.exerciseChecks[d+'_ex_'+i]){done++;exDone++;}});
+  MEALS.forEach((_,i)=>{total++;if(s.mealChecks[d+'_meal_'+i]){done++;mealDone++;}});
+  SUPPLEMENTS.forEach((_,i)=>{total++;if(s.suppChecks[d+'_supp_'+i]){done++;suppDone++;}});
+  SKIN_AM.forEach(item=>{total++;if(s.skinChecks[d+'_am_'+item.num])done++;});
+  DEBLOAT_AM.forEach(item=>{total++;if(s.skinChecks[d+'_debloat_'+item.num])done++;});
+  return {done,total,pct:total?Math.round(done/total*100):0,exDone,mealDone,suppDone,exTotal:exercises.length};
+}
+
+function grantXP(type) {
+  const s=getState();if(!s.xp)s.xp=0;
+  s.xp+=XP_VALUES[type]||0;saveState(s);
+}
+
+function updateProgress() {
+  const s=getState();const prog=getDailyProgress();
+  const xp=s.xp||0;const lvl=getLevel(xp);const streak=getStreak(s);
+  // Ring
+  const offset=113.1*(1-prog.pct/100);
+  document.getElementById('progressRing').setAttribute('stroke-dashoffset',offset);
+  document.getElementById('ringPct').textContent=prog.pct+'%';
+  document.getElementById('ringPct').style.color=prog.pct===100?'var(--green)':'var(--text)';
+  // Level
+  document.getElementById('lvlNum').textContent=lvl.level;
+  document.getElementById('lvlTitle').textContent=lvl.title;
+  document.getElementById('xpFill').style.width=(lvl.progress*100)+'%';
+  document.getElementById('xpText').textContent=xp+' / '+lvl.next+' XP';
+  // Streak
+  document.getElementById('streakNum').textContent=streak;
+  // Day completion
+  if(prog.pct===100){
+    if(!s.completedDays)s.completedDays=[];
+    if(!s.completedDays.includes(today())){
+      s.completedDays.push(today());
+      s.xp=(s.xp||0)+XP_VALUES.dayComplete;
+      saveState(s);
+    }
+    if(!s.completionShown)s.completionShown={};
+    if(!s.completionShown[today()]){
+      s.completionShown[today()]=true;saveState(s);
+      setTimeout(()=>showCompletion(prog,getState()),300);
+    }
+  }
+}
+
+function showCompletion(prog,s) {
+  const streak=getStreak(s);const lvl=getLevel(s.xp||0);
+  document.getElementById('compEx').textContent=prog.exDone+'/'+prog.exTotal;
+  document.getElementById('compMeals').textContent=prog.mealDone+'/'+MEALS.length;
+  document.getElementById('compSupps').textContent=prog.suppDone+'/'+SUPPLEMENTS.length;
+  document.getElementById('compStreak').textContent=streak;
+  document.getElementById('compLevelText').textContent='Level '+lvl.level+' — '+lvl.title;
+  document.getElementById('completionOverlay').classList.add('show');
+  // Animate XP counter
+  const target=XP_VALUES.dayComplete;let current=0;const step=Math.ceil(target/25);
+  const counter=document.getElementById('compXpEarned');
+  const iv=setInterval(()=>{current=Math.min(current+step,target);counter.textContent=current;if(current>=target)clearInterval(iv);},40);
+}
+function dismissCompletion(){document.getElementById('completionOverlay').classList.remove('show');}
+
+function showSectionToast(title,xp) {
+  const el=document.getElementById('sectionToast');
+  document.getElementById('stTitle').textContent=title;
+  document.getElementById('stXp').textContent='+'+xp+' XP';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1500);
+}
+
+function checkSectionComplete(type) {
+  const s=getState();const d=today();
+  if(type==='exercise'){
+    const plan=buildPlan();const dk=['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+    const exs=plan[dk].exercises||[];
+    if(exs.length&&exs.every((_,i)=>s.exerciseChecks[d+'_ex_'+i]))showSectionToast('training complete',exs.length*10);
+  }else if(type==='meal'){
+    if(MEALS.every((_,i)=>s.mealChecks[d+'_meal_'+i]))showSectionToast('nutrition complete',MEALS.length*8);
+  }else if(type==='supplement'){
+    if(SUPPLEMENTS.every((_,i)=>s.suppChecks[d+'_supp_'+i]))showSectionToast('stack complete',SUPPLEMENTS.length*5);
+  }
+}
 
 // ========== TAB SWITCHING ==========
 function switchMain(id) {
@@ -709,7 +897,7 @@ function renderSkinPm() {
 }
 function renderSkinWeekly() { document.getElementById('skinWeeklyList').innerHTML = SKIN_WEEKLY.map((w,i)=>`<div class="skin-step"><div class="step-num weekly">${i+1}</div><div class="info"><div class="product-name">${w.name}</div><div class="product-brand">${w.brand}</div><div class="product-detail">${w.detail}</div>${w.price?'<div class="product-price">'+w.price+'</div>':''}</div></div>`).join(''); }
 function renderSkinShop() { document.getElementById('skinShopList').innerHTML = SKIN_SHOP.map((s,i)=>`<div class="skin-step"><div class="step-num new">${i+1}</div><div class="info"><div class="product-name">${s.name}</div><div class="product-detail">${s.where}</div></div><div style="font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;">${s.price}</div></div>`).join(''); }
-function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); }
+function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; const wasOff=!s.skinChecks[key]; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); if(wasOff){const type=k.startsWith('debloat')?'debloat':k.startsWith('acne')?'acne':'skincare';grantXP(type);} updateProgress(); }
 function toggleRetinol() { const s=getState(); s.retinolNight=!s.retinolNight; saveState(s); renderSkinPm(); }
 
 // ========== DE-BLOAT ==========
@@ -745,7 +933,7 @@ function renderSupps() {
     return `<div class="supp-item"><div class="check ${done?'done':''}" onclick="toggleSupp(${i})"></div><div class="info"><div class="supp-name">${sup.name}</div><div class="supp-dose">${sup.dose} -- ${sup.time}</div><div class="supp-note">${sup.note}</div></div></div>`;
   }).join('');
 }
-function toggleSupp(i) { const s=getState(); const k=today()+'_supp_'+i; s.suppChecks[k]=!s.suppChecks[k]; saveState(s); renderSupps(); }
+function toggleSupp(i) { const s=getState(); const k=today()+'_supp_'+i; const wasOff=!s.suppChecks[k]; s.suppChecks[k]=!s.suppChecks[k]; saveState(s); renderSupps(); if(wasOff)grantXP('supplement'); updateProgress(); checkSectionComplete('supplement'); }
 
 // ========== MEALS ==========
 function renderMealPlan() {
@@ -757,7 +945,7 @@ function renderMealPlan() {
   }).join('');
   updateMacros();
 }
-function toggleMeal(i) { const s=getState(); const k=today()+'_meal_'+i; s.mealChecks[k]=!s.mealChecks[k]; saveState(s); renderMealPlan(); }
+function toggleMeal(i) { const s=getState(); const k=today()+'_meal_'+i; const wasOff=!s.mealChecks[k]; s.mealChecks[k]=!s.mealChecks[k]; saveState(s); renderMealPlan(); if(wasOff)grantXP('meal'); updateProgress(); checkSectionComplete('meal'); }
 function updateMacros() {
   const s=getState(); let cal=0,p=0,c=0,f=0;
   MEALS.forEach((m,i)=>{ if(s.mealChecks[today()+'_meal_'+i]){cal+=m.cal;p+=m.p;c+=m.c;f+=m.f;} });
@@ -835,7 +1023,7 @@ function renderTrainToday() {
     return `<div class="exercise ${done?'completed':''}" onclick="toggleMeal(${i});renderTrainToday();"><div class="info"><div class="name">${m.name}</div><div class="detail">${m.desc}</div></div><div class="check ${done?'done':''}"></div></div>`;
   }).join('');
 }
-function toggleExercise(i) { const s=getState(); const k=today()+'_ex_'+i; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderTrainToday(); toast('Exercise toggled'); }
+function toggleExercise(i) { const s=getState(); const k=today()+'_ex_'+i; const wasOff=!s.exerciseChecks[k]; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderTrainToday(); if(wasOff)grantXP('exercise'); updateProgress(); checkSectionComplete('exercise'); }
 
 // ========== PLAN VIEW ==========
 function renderPlan() {
@@ -1072,6 +1260,7 @@ function init() {
   renderSkinAm(); renderSkinPm(); renderSkinWeekly(); renderSkinShop();
   renderSupps(); renderMealPlan();
   renderPeriodBanner(); renderWeekGrid(); renderTrainToday();
+  updateProgress();
 }
 init();
 </script>
