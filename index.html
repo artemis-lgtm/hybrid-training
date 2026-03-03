@@ -350,7 +350,20 @@ canvas { border-radius:8px; }
 // ===== DATA =====
 const DEFAULT_PLAN = {
   tue: {
-    label: 'TUESDAY', type: 'power', title: 'Lower Power + Explosives',
+    label: 'TUESDAY', type: 'strength', title: 'Heavy Upper',
+    exercises: [
+      { name:'Barbell Bench Press', detail:'4x5 @ 80-85% (2 min rest)', sets:'4', reps:'5' },
+      { name:'Barbell Bent-Over Row', detail:'4x5 @ 80-85% (2 min rest)', sets:'4', reps:'5' },
+      { name:'Standing Overhead Press', detail:'3x6 @ 75-80% (90 sec rest)', sets:'3', reps:'6' },
+      { name:'Weighted Pull-ups', detail:'3x6 (90 sec rest)', sets:'3', reps:'6' },
+      { name:'Dumbbell Incline Press', detail:'3x8 (90 sec rest)', sets:'3', reps:'8' },
+      { name:'Face Pulls', detail:'3x15 (60 sec rest)', sets:'3', reps:'15' },
+      { name:'Barbell Curl', detail:'3x10 (60 sec rest)', sets:'3', reps:'10' },
+      { name:'Overhead Tricep Extension', detail:'3x10 (60 sec rest)', sets:'3', reps:'10' },
+    ]
+  },
+  wed: {
+    label: 'WEDNESDAY', type: 'power', title: 'Heavy Lower',
     exercises: [
       { name:'Dynamic Warmup', detail:'Leg swings, hip circles, high knees — 5 min', sets:'', reps:'' },
       { name:'Back Squat', detail:'4x5 @ 80-85% 1RM (2 min rest)', sets:'4', reps:'5' },
@@ -361,43 +374,28 @@ const DEFAULT_PLAN = {
       { name:'Standing Calf Raise', detail:'4x10 (60 sec rest)', sets:'4', reps:'10' },
     ]
   },
-  wed: {
-    label: 'WEDNESDAY', type: 'strength', title: 'Upper Strength',
-    exercises: [
-      { name:'Barbell Bench Press', detail:'4x5 @ 80-85% (2 min rest)', sets:'4', reps:'5' },
-      { name:'Barbell Bent-Over Row', detail:'4x5 @ 80-85% (2 min rest)', sets:'4', reps:'5' },
-      { name:'Standing Overhead Press', detail:'3x6 (90 sec rest)', sets:'3', reps:'6' },
-      { name:'Weighted Pull-ups', detail:'3x6 (90 sec rest)', sets:'3', reps:'6' },
-      { name:'Dumbbell Incline Press', detail:'3x8 (90 sec rest)', sets:'3', reps:'8' },
-      { name:'Face Pulls', detail:'3x15', sets:'3', reps:'15' },
-      { name:'Barbell Curl', detail:'3x10', sets:'3', reps:'10' },
-      { name:'Overhead Tricep Extension', detail:'3x10', sets:'3', reps:'10' },
-    ]
-  },
   thu: {
-    label: 'THURSDAY', type: 'hyper', title: 'Lower Hypertrophy + Sprints',
+    label: 'THURSDAY', type: 'hyper', title: 'Upper Hypertrophy',
     exercises: [
-      { name:'Sprint Work (fresh legs)', detail:'4x40yd + 4x20yd, walk-back recovery', sets:'8', reps:'1' },
-      { name:'Front Squat', detail:'4x8 (90 sec rest)', sets:'4', reps:'8' },
-      { name:'Conventional Deadlift', detail:'3x6 (2 min rest)', sets:'3', reps:'6' },
-      { name:'Walking Lunges', detail:'3x10 each leg', sets:'3', reps:'10' },
-      { name:'Leg Press', detail:'3x12 (90 sec rest)', sets:'3', reps:'12' },
-      { name:'Hip Thrust', detail:'3x12', sets:'3', reps:'12' },
-      { name:'Leg Curl', detail:'3x12', sets:'3', reps:'12' },
-      { name:'Hanging Leg Raise', detail:'3x15', sets:'3', reps:'15' },
+      { name:'Dumbbell Bench Press', detail:'4x10 @ 65-70% (90 sec rest)', sets:'4', reps:'10' },
+      { name:'Cable Row', detail:'4x10 (90 sec rest)', sets:'4', reps:'10' },
+      { name:'Lateral Raises', detail:'4x12 — drop set on last set (60 sec rest)', sets:'4', reps:'12' },
+      { name:'Chest-Supported DB Row', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
+      { name:'Cable Flyes', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
+      { name:'Hammer Curls', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
+      { name:'Skull Crushers', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
     ]
   },
   fri: {
-    label: 'FRIDAY', type: 'crossfit', title: 'Upper Hypertrophy + CrossFit Finisher',
+    label: 'FRIDAY', type: 'power', title: 'Lower Hypertrophy',
     exercises: [
-      { name:'Dumbbell Bench Press', detail:'4x10 (90 sec rest)', sets:'4', reps:'10' },
-      { name:'Cable Row', detail:'4x10', sets:'4', reps:'10' },
-      { name:'Lateral Raises', detail:'4x12 — drop set on last set', sets:'4', reps:'12' },
-      { name:'Chest-Supported DB Row', detail:'3x12', sets:'3', reps:'12' },
-      { name:'Cable Flyes', detail:'3x12', sets:'3', reps:'12' },
-      { name:'Hammer Curls', detail:'3x12', sets:'3', reps:'12' },
-      { name:'Skull Crushers', detail:'3x12', sets:'3', reps:'12' },
-      { name:'CF Finisher: AMRAP 12min', detail:'5 burpees + 10 KB swings + 15 box jumps (rotate weekly)', sets:'1', reps:'AMRAP' },
+      { name:'Leg Press', detail:'4x10 (90 sec rest)', sets:'4', reps:'10' },
+      { name:'Walking Lunges', detail:'3x10 each leg (90 sec rest)', sets:'3', reps:'10' },
+      { name:'Leg Curl', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
+      { name:'Hip Thrust', detail:'3x12 (60 sec rest)', sets:'3', reps:'12' },
+      { name:'Hanging Leg Raise', detail:'3x15', sets:'3', reps:'15' },
+      { name:'Depth Jumps', detail:'3x5 — step off box, land, immediately jump max height', sets:'3', reps:'5' },
+      { name:'Lateral Bounds', detail:'3x8 each direction', sets:'3', reps:'8' },
     ]
   },
   sat: {
