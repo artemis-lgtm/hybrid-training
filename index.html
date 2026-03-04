@@ -255,7 +255,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="game-stats">
         <div class="game-level">LVL <span class="lvl-num" id="lvlNum">1</span><span style="color:var(--muted);font-size:10px;">/100</span><span class="lvl-title" id="lvlTitle">Foundation</span></div>
         <div class="game-xp-bar"><div class="game-xp-fill" id="xpFill" style="width:0%"></div></div>
-        <div class="game-xp-text"><span id="xpText">0 / 200 XP</span></div>
+        <div class="game-xp-text"><span id="xpText">0 / 200 XP</span><span onclick="resetXP()" style="font-size:9px;color:var(--muted);margin-left:8px;cursor:pointer;opacity:.5;">reset</span></div>
       </div>
       <div class="game-streak">
         <div class="streak-num" id="streakNum">0</div>
@@ -810,6 +810,12 @@ function grantXP(type) {
   const s=getState();if(!s.xp)s.xp=0;
   s.xp+=XP_VALUES[type]||0;saveState(s);
 }
+function resetXP() {
+  if(!confirm('Reset to Level 1? All XP, streaks, and completed days will be cleared.'))return;
+  const s=getState();s.xp=0;s.completedDays=[];s.completionShown={};saveState(s);updateProgress();
+}
+// One-time XP reset (requested 2026-03-03)
+(function(){const s=getState();if(!s._xpReset030326){s.xp=0;s.completedDays=[];s.completionShown={};s._xpReset030326=true;saveState(s);}})();
 
 function updateProgress() {
   const s=getState();const prog=getDailyProgress();
