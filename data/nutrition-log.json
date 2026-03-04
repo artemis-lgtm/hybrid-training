@@ -1,5 +1,26 @@
 {
   "2026-03-04": [
-    {"meal": "Meal 3 -- Lunch", "slot": 2, "item": "PF Chang's Crispy Honey Chicken w/ White Rice", "cal": 1179, "p": 38, "c": 186, "f": 30, "time": "~12:00 PM", "note": "Replaces planned chicken salad"}
+    {
+      "meal": "Meal 3 -- Lunch",
+      "slot": 2,
+      "item": "PF Chang's Crispy Honey Chicken w/ White Rice",
+      "cal": 1179,
+      "p": 38,
+      "c": 186,
+      "f": 30,
+      "time": "~12:00 PM",
+      "note": "Replaces planned chicken salad"
+    },
+    {
+      "meal": "Dinner",
+      "slot": 4,
+      "item": "Ribeye Steak w/ White Asparagus",
+      "cal": 930,
+      "p": 68,
+      "c": 5,
+      "f": 66,
+      "time": "~5:00 PM",
+      "note": "Bone-in ribeye with compound butter + white asparagus"
+    }
   ]
 }

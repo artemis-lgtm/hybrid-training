@@ -1478,6 +1478,31 @@ async function fetchNutritionLog() {
   } catch(e) { /* no log yet */ }
 }
 function getTodayActual() { return actualNutritionLog[today()] || []; }
+// Auto-sync: logged meals → mealChecks → progress tracker
+function syncActualToChecks() {
+  const entries = getTodayActual();
+  if (!entries.length) return;
+  const s = getState();
+  const meals = getMeals();
+  let changed = false;
+  entries.forEach(a => {
+    // Match by slot index
+    if (a.slot !== undefined && a.slot < meals.length) {
+      const k = today()+'_meal_'+a.slot;
+      if (!s.mealChecks[k]) { s.mealChecks[k] = true; changed = true; }
+    }
+    // Match by meal name
+    if (a.meal) {
+      meals.forEach((m,i) => {
+        if (m.name.toLowerCase().includes(a.meal.toLowerCase())) {
+          const k = today()+'_meal_'+i;
+          if (!s.mealChecks[k]) { s.mealChecks[k] = true; changed = true; }
+        }
+      });
+    }
+  });
+  if (changed) { saveState(s); updateProgress(); }
+}
 function renderActualIntake() {
   const entries = getTodayActual();
   const card = document.getElementById('actualIntakeCard');
@@ -1538,6 +1563,7 @@ function dailyReset() {
 async function init() {
   dailyReset();
   await fetchNutritionLog();
+  syncActualToChecks();
   renderSkinAm(); renderSkinPm(); renderSkinShop();
   renderSupps(); renderMealPlan();
   renderPeriodBanner(); renderWeekGrid(); renderTrainToday();
