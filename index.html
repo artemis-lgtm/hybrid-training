@@ -682,7 +682,9 @@ const SKIN_AM = [
   {num:6, status:'new', name:'Under-Eye Caffeine', brand:'The Ordinary Caffeine Solution 5% + EGCG', detail:'Tap under eyes + orbital bone with ring finger. Constricts blood vessels, de-puffs overnight swelling. Use BEFORE sunscreen.', price:'~$8'},
   {num:7, status:'new', name:'Sunscreen (Face)', brand:'Beauty of Joseon Relief Sun SPF50+ PA++++', detail:'#1 Korean sunscreen. Rice bran + probiotics, zero white cast. THE most important product. LAST step.', price:'~$16'},
   {num:8, status:'new', name:'Body Sunscreen', brand:'Neutrogena Ultra Sheer Dry-Touch SPF 70', detail:'Apply 15 min before going out. Generous coat on all exposed skin -- especially over tattoos (UV fades ink). Reapply at the 45-min mark if sweating hard.', price:'~$12', days:[6]},
-  {num:9, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
+  {num:9, status:'new', name:'Chin Tucks', brand:'3x10 reps daily', detail:'Stand against wall, tuck chin straight back (make a double chin). Hold 5 seconds. Fixes forward head posture -- makes jawline look sharper, neck longer, eliminates tech-neck double chin.'},
+  {num:10, status:'new', name:'Mastic Gum', brand:'Chew 30-45 min daily', detail:'Hard gum that hypertrophies masseter muscles -- wider, more angular jaw. Real results in 2-3 months. Chew evenly on both sides. Amazon: Greek mastic gum or Falim gum.', price:'~$15'},
+  {num:11, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
 ];
 function getSkinAMToday() { const dow=new Date().getDay(); return SKIN_AM.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_PM_FULL = [
@@ -699,6 +701,7 @@ const SKIN_PM_FULL = [
   {num:11, status:'keep', name:'Eye Cream', brand:'INKEY List Retinol Eye Cream', detail:'Ring finger, tap gently under eyes + crow\'s feet. Retinol nights only.', retinolSkip:false, retinolOnly:true},
   {num:12, status:'new', name:'BHA Deep Clean (T-Zone)', brand:'COSRX BHA Blackhead Power Liquid', detail:'WEDNESDAY TREATMENT: Extra concentrated application on nose + chin + forehead. Leave 20 min before next step. Same product as daily BHA, deeper treatment.', retinolSkip:true, skipNote:'SKIP on retinol nights', days:[3]},
   {num:13, status:'new', name:'Sheet Mask', brand:'Mediheal NMF Aquaring Ampoule Mask', detail:'FRIDAY TREATMENT: 15-20 min after essences, before moisturizer. Lean back and relax. Deep hydration boost for the weekend.', price:'~$15 (10pk)', retinolSkip:false, days:[5]},
+  {num:14, status:'new', name:'Minoxidil 5% (Beard)', brand:'Kirkland or Rogaine 5% Liquid', detail:'Apply to beard area after moisturizer. Only where you want growth -- it WILL grow hair wherever you put it. Let dry 10-15 min before pillow. Takes 3-6 months for results. Once hairs go terminal they\'re permanent.', price:'~$20 (3mo)'},
 ];
 function getSkinPMToday() { const dow=new Date().getDay(); return SKIN_PM_FULL.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_SHOP = [
