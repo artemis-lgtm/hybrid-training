@@ -151,6 +151,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .day-label.hyper { background:rgba(253,203,110,.2); color:var(--orange); }
 .day-label.beach { background:rgba(0,206,201,.2); color:var(--accent2); }
 .day-label.rest { background:rgba(136,136,160,.15); color:var(--muted); }
+.day-label.mobility { background:rgba(116,185,255,.2); color:#74b9ff; }
 .day-label.deload { background:rgba(253,203,110,.15); color:var(--orange); border:1px dashed var(--orange); }
 
 /* Week grid */
@@ -285,6 +286,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="sub-tabs">
       <div class="sub-tab active" onclick="switchSkin('skinAm')">AM</div>
       <div class="sub-tab" onclick="switchSkin('skinPm')">PM</div>
+      <div class="sub-tab" onclick="switchSkin('skinSatPrep')">Sat Prep</div>
       <div class="sub-tab" onclick="switchSkin('skinShop')">Shop List</div>
       <div class="sub-tab" onclick="switchSkin('skinDebloat')">De-Bloat</div>
     </div>
@@ -297,6 +299,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="toggle-row"><span style="font-size:13px;font-weight:600;">Retinol Night?</span><div class="toggle" id="retinolToggle" onclick="toggleRetinol()"><div class="knob"></div></div></div>
       <div id="skinPmList"></div>
       <div class="tip" id="retinolTip" style="display:none;">Retinol night: skip BHA exfoliant and La Mer moisturizer. Olay Retinol MAX has its own base. Apply retinol eye cream too.</div></div>
+    </div>
+    <div id="skinSatPrep" class="sub-section">
+      <div class="card"><div class="card-title">Saturday Night Prep <span style="font-size:11px;color:var(--muted);font-weight:400;">(post-workout, pre-drinking)</span></div><div id="satPrepList"></div>
+      <div class="tip">Do these after your Saturday workout and before going out. Goal: minimize Sunday redness, bloat, and skin inflammation so you recover by Monday instead of Thursday.</div></div>
+      <div class="card"><div class="card-title">Sunday Morning Recovery</div><div id="sunRecoveryList"></div>
+      <div class="tip">The faster you rehydrate and reduce inflammation Sunday, the faster your eyes clear and skin bounces back.</div></div>
     </div>
     <div id="skinShop" class="sub-section">
       <div class="card"><div class="card-title">Shopping List <span class="badge new-badge">NEW ITEMS</span></div><div id="skinShopList"></div>
@@ -653,7 +661,14 @@ function buildPlan(periodOverride) {
     fri: { label:'FRIDAY', type:dl?'deload':'power', title:'Lower Hypertrophy'+dlSuffix, exercises:fri },
     sat: { label:'SATURDAY', type:dl?'deload':'beach', title:'Beach Day -- 9 AM'+dlSuffix, exercises:sat },
     sun: { label:'SUNDAY', type:'rest', title:'Rest Day', exercises:[] },
-    mon: { label:'MONDAY', type:'rest', title:'Rest Day', exercises:[] },
+    mon: (p.weekInBlock % 2 === 0) ? { label:'MONDAY', type:'mobility', title:'Yoga & Mobility', exercises:[
+      {name:'Yoga Flow', detail:'30-45 min session. Focus on hip openers, hamstring lengthening, thoracic spine mobility. YouTube: "Yoga With Tim" or "Breathe and Flow" for athletic flows.', tag:''},
+      {name:'Pigeon Pose', detail:'2 min each side. Deep hip flexor and glute stretch. Keep hips square, breathe into the tightness.', tag:''},
+      {name:'World\'s Greatest Stretch', detail:'5 each side. Lunge + twist + hamstring. Hits everything -- hips, thoracic spine, hamstrings, ankles.', tag:''},
+      {name:'Cat-Cow + Thread the Needle', detail:'10 cat-cows, then 8 thread-the-needles each side. Thoracic spine mobility for pressing and overhead work.', tag:''},
+      {name:'90/90 Hip Switches', detail:'10 each side. Sit on floor, legs in 90/90 position, switch sides smoothly. Internal and external rotation.', tag:''},
+      {name:'Foam Roll', detail:'10 min. Hit quads, IT band, lats, thoracic spine. Slow rolls, pause on tender spots 20-30 seconds.', tag:''},
+    ]} : { label:'MONDAY', type:'rest', title:'Rest Day', exercises:[] },
   };
 }
 
@@ -699,6 +714,26 @@ const SKIN_SHOP = [
   {name:'Microneedling + Exosome Serum', price:'$300-500/session', where:'Korean derm -- 3-4 sessions then quarterly'},
   {name:'Tear Trough Filler Consult', price:'$600-1,000', where:'Dr. Ryan Greene, Weston FL'},
 ];
+// ========== SATURDAY PREP PROTOCOL ==========
+const SAT_PREP = [
+  {num:1, name:'NAC (N-Acetyl Cysteine) 600mg', detail:'Take BEFORE drinking. Supports glutathione production -- helps your liver process alcohol faster and reduces the inflammatory cascade that hits your face, eyes, and gut.', price:'~$15'},
+  {num:2, name:'Milk Thistle 500mg', detail:'Daily supplement but especially important today. Protects liver cells from alcohol damage long-term.', price:'~$12'},
+  {num:3, name:'Electrolytes (LMNT or Liquid IV)', detail:'One full packet in 16oz water after your workout, before you start drinking. Pre-loading electrolytes prevents the worst of the dehydration.', price:'~$1/pkt'},
+  {num:4, name:'Big Meal Before Drinking', detail:'Eat a full meal with protein and fat before your first drink. Slows alcohol absorption significantly. Your post-workout meal handles this.'},
+  {num:5, name:'Lumify Eye Drops', detail:'Keep these on hand. Brimonidine 0.025% -- the only OTC drop that whitens eyes without rebound redness. Use Sunday morning, not before drinking.', price:'~$12'},
+  {num:6, name:'Water Between Drinks', detail:'One glass of water for every 2-3 drinks throughout the night. Non-negotiable if you want to recover by Monday.'},
+  {num:7, name:'Before Bed', detail:'Chug 16-24oz water + another electrolyte packet. Do your PM skincare routine even if you\'re tired -- at minimum cleanser + moisturizer. Alcohol dehydrates your skin overnight.'},
+];
+const SUN_RECOVERY = [
+  {num:1, name:'Lumify Drops', detail:'1-2 drops each eye first thing. Eyes will be white within 10 minutes. Don\'t use Visine/Clear Eyes -- they cause rebound redness.'},
+  {num:2, name:'Electrolytes + Water', detail:'Another LMNT/Liquid IV packet immediately. Continue hydrating aggressively all day -- aim for 120oz+ total.'},
+  {num:3, name:'NAC 600mg Again', detail:'Another dose to help clear remaining acetaldehyde (the toxic byproduct that causes hangovers and inflammation).'},
+  {num:4, name:'Ice Water Face Dunk', detail:'Same as AM routine. Extra important today -- your face is inflamed and puffy from alcohol. 3x 15-30 second dunks.'},
+  {num:5, name:'Double Vitamin C Serum', detail:'Two layers of your Timeless Vitamin C. Alcohol depletes antioxidants -- this replenishes and fights the oxidative damage showing on your skin.'},
+  {num:6, name:'Omega-3s With Breakfast', detail:'Fish oil or your regular omega-3 supplement. Anti-inflammatory -- helps resolve the redness in your eyes and skin faster.'},
+  {num:7, name:'Protein-Heavy Breakfast', detail:'Eggs, turkey sausage, something substantial. Your body needs amino acids to repair. Don\'t skip this.'},
+];
+
 // DEBLOAT_AM removed -- ice dunk + gua sha moved to SKIN_AM; coffee + post-workout skincare already covered by other tabs
 const DEBLOAT_DIET = [
   {name:'Water: 1 Gallon/Day Minimum', detail:'Counterintuitive but flooding your body with water signals it to RELEASE stored water. Dehydration = retention. Carry a gallon jug.', icon:'W'},
@@ -947,6 +982,7 @@ function switchSkin(id) {
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
   if (id==='skinDebloat') renderDebloat();
+  if (id==='skinSatPrep') renderSatPrep();
 }
 function switchNutr(id) {
   document.querySelectorAll('#nutrition .sub-section').forEach(s=>s.classList.remove('active'));
@@ -1010,6 +1046,31 @@ function renderSkinPm() {
 function renderSkinShop() { document.getElementById('skinShopList').innerHTML = SKIN_SHOP.map((s,i)=>`<div class="skin-step"><div class="step-num new">${i+1}</div><div class="info"><div class="product-name">${s.name}</div><div class="product-detail">${s.where}</div></div><div style="font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;">${s.price}</div></div>`).join(''); }
 function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; const wasOff=!s.skinChecks[key]; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); if(wasOff){const type=k.startsWith('debloat')?'debloat':k.startsWith('acne')?'acne':'skincare';grantXP(type);} updateProgress(); checkSectionComplete('skincare'); }
 function toggleRetinol() { const s=getState(); s.retinolNight=!s.retinolNight; saveState(s); renderSkinPm(); }
+
+// ========== SATURDAY PREP ==========
+function renderSatPrep() {
+  const s = getState();
+  document.getElementById('satPrepList').innerHTML = SAT_PREP.map((item,i) => {
+    const k = today()+'_satprep_'+i;
+    const done = s.exerciseChecks && s.exerciseChecks[k];
+    const isSat = new Date().getDay() === 6;
+    if (isSat) {
+      return `<div class="exercise ${done?'completed':''}" onclick="toggleSatPrep(${i})"><div class="info"><div class="name">${item.name}</div><div class="detail">${item.detail}</div></div><div class="check ${done?'done':''}"></div></div>`;
+    }
+    return `<div class="skin-step"><div class="step-num" style="background:var(--accent);">${item.num}</div><div class="info"><div class="product-name">${item.name}</div><div class="product-detail">${item.detail}</div>${item.price?'<div class="product-price">'+item.price+'</div>':''}</div></div>`;
+  }).join('');
+  document.getElementById('sunRecoveryList').innerHTML = SUN_RECOVERY.map((item,i) => {
+    const k = today()+'_sunrecov_'+i;
+    const done = s.exerciseChecks && s.exerciseChecks[k];
+    const isSun = new Date().getDay() === 0;
+    if (isSun) {
+      return `<div class="exercise ${done?'completed':''}" onclick="toggleSunRecov(${i})"><div class="info"><div class="name">${item.name}</div><div class="detail">${item.detail}</div></div><div class="check ${done?'done':''}"></div></div>`;
+    }
+    return `<div class="skin-step"><div class="step-num" style="background:var(--green);">${item.num}</div><div class="info"><div class="product-name">${item.name}</div><div class="product-detail">${item.detail}</div></div></div>`;
+  }).join('');
+}
+function toggleSatPrep(i) { const s=getState(); const k=today()+'_satprep_'+i; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderSatPrep(); }
+function toggleSunRecov(i) { const s=getState(); const k=today()+'_sunrecov_'+i; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderSatPrep(); }
 
 // ========== DE-BLOAT ==========
 function renderDebloat() {
