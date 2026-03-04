@@ -599,9 +599,10 @@ function buildPlan(periodOverride) {
   sat.push({name:absBlock[0].name, detail:absBlock[0].detail, tag:'abs'});
   sat.push({name:absBlock[1].name, detail:absBlock[1].detail, tag:'abs'});
 
-  // ---- SPRINTS (Friday + Saturday) ----
-  fri.push({name:'Sprint Intervals', detail:dl?'4x40yd @ 70% (walk back rest)':'6-8x40yd sprints -- walk back = rest. MAX effort. Do AFTER all lifting.', tag:'cardio'});
-  sat.push({name:'Beach Sprints', detail:dl?'4x50yd @ 70%':'6-8x50yd sand sprints -- harder surface = more glute/hamstring activation. Full send.', tag:'cardio'});
+  // ---- SPRINTS (Wednesday + Friday + Saturday) ----
+  wed.push({name:'Sprint Intervals', detail:dl?'4x40yd @ 70% (walk back rest)':'6-8x40yd sprints -- walk back = rest. MAX effort. Do AFTER all lifting. NO weight vest.', tag:'cardio'});
+  fri.push({name:'Sprint Intervals', detail:dl?'4x40yd @ 70% (walk back rest)':'6-8x40yd sprints -- walk back = rest. MAX effort. Do AFTER all lifting. NO weight vest.', tag:'cardio'});
+  sat.push({name:'Beach Sprints', detail:dl?'4x50yd @ 70%':'6-8x50yd sand sprints -- harder surface = more glute/hamstring activation. Full send. NO VEST for sprints.', tag:'cardio'});
 
   // Prepend couch stretch to every training day
   const couchStretch = {name:'Couch Stretch (Hip Flexor)', detail:'2x90s each side -- squeeze glute HARD the entire time. Don\'t arch lower back.', tag:''};
