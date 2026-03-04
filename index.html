@@ -680,8 +680,9 @@ const SKIN_AM = [
   {num:4, status:'new', name:'Vitamin C Serum', brand:'Timeless 20% Vitamin C + E Ferulic', detail:'20% L-ascorbic acid. Same formula as SkinCeuticals at 1/5 price. Store in fridge.', price:'~$28'},
   {num:5, status:'new', name:'Niacinamide', brand:'COSRX The Niacinamide 15 Serum', detail:'15% niacinamide. Pore minimizer, brightener, barrier repair.', price:'~$20'},
   {num:6, status:'new', name:'Under-Eye Caffeine', brand:'The Ordinary Caffeine Solution 5% + EGCG', detail:'Tap under eyes + orbital bone with ring finger. Constricts blood vessels, de-puffs overnight swelling. Use BEFORE sunscreen.', price:'~$8'},
-  {num:7, status:'new', name:'Sunscreen', brand:'Beauty of Joseon Relief Sun SPF50+ PA++++', detail:'#1 Korean sunscreen. Rice bran + probiotics, zero white cast. THE most important product. LAST step.', price:'~$16'},
-  {num:8, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
+  {num:7, status:'new', name:'Sunscreen (Face)', brand:'Beauty of Joseon Relief Sun SPF50+ PA++++', detail:'#1 Korean sunscreen. Rice bran + probiotics, zero white cast. THE most important product. LAST step.', price:'~$16'},
+  {num:8, status:'new', name:'Body Sunscreen', brand:'Neutrogena Ultra Sheer Dry-Touch SPF 70', detail:'Apply 15 min before going out. Generous coat on all exposed skin -- especially over tattoos (UV fades ink). Reapply at the 45-min mark if sweating hard.', price:'~$12', days:[6]},
+  {num:9, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
 ];
 function getSkinAMToday() { const dow=new Date().getDay(); return SKIN_AM.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_PM_FULL = [
