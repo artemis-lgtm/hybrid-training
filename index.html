@@ -251,7 +251,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="ring-text" id="ringPct">0%</div>
       </div>
       <div class="game-stats">
-        <div class="game-level">LVL <span class="lvl-num" id="lvlNum">1</span><span class="lvl-title" id="lvlTitle">Beginner</span></div>
+        <div class="game-level">LVL <span class="lvl-num" id="lvlNum">1</span><span style="color:var(--muted);font-size:10px;">/100</span><span class="lvl-title" id="lvlTitle">Foundation</span></div>
         <div class="game-xp-bar"><div class="game-xp-fill" id="xpFill" style="width:0%"></div></div>
         <div class="game-xp-text"><span id="xpText">0 / 200 XP</span></div>
       </div>
@@ -730,16 +730,30 @@ function toast(msg) { const t=document.getElementById('toast'); t.textContent=ms
 function today() { return new Date().toISOString().slice(0,10); }
 
 // ========== GAMIFICATION ==========
-const LEVEL_THRESHOLDS = [0,200,500,1000,1800,3000,4500,6500,9000,12000,16000,21000];
-const LEVEL_TITLES = ['Beginner','Dedicated','Consistent','Warrior','Elite','Iron Will','Unstoppable','Legendary','Mythic','Transcendent','Ascended','Immortal'];
-const XP_VALUES = { exercise:10, meal:8, supplement:5, skincare:5, debloat:8, acne:5, dayComplete:200 };
+// Level 100 = +20 lbs lean muscle (182→202). Formula: 25 × L² cumulative XP.
+// Perfect compliance → level 100 in ~20 months (~86 weeks at ~2,900 XP/week).
+const MAX_LEVEL = 100;
+const LEVEL_TIERS = [
+  [1,'Foundation'],[11,'Dedicated'],[21,'Consistent'],[31,'Warrior'],[41,'Elite'],
+  [51,'Iron Will'],[61,'Unstoppable'],[71,'Legendary'],[81,'Mythic'],[91,'Transcendent'],[100,'Ascended']
+];
+const MILESTONES = {10:'+2 lbs',25:'+5 lbs',50:'+10 lbs — Halfway',75:'+15 lbs',100:'+20 lbs — Goal Weight 202'};
+const XP_VALUES = { exercise:10, meal:8, supplement:5, skincare:5, dayComplete:200 };
+
+function getLevelThreshold(l) { return 25 * l * l; }
 
 function getLevel(xp) {
   let lvl=0;
-  for(let i=0;i<LEVEL_THRESHOLDS.length;i++){if(xp>=LEVEL_THRESHOLDS[i])lvl=i;else break;}
-  const curr=LEVEL_THRESHOLDS[lvl];
-  const next=LEVEL_THRESHOLDS[lvl+1]||LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length-1]+5000;
-  return {level:lvl+1, title:LEVEL_TITLES[lvl]||'Immortal', curr, next, progress:Math.min(1,(xp-curr)/(next-curr))};
+  for(let l=1;l<=MAX_LEVEL;l++){if(xp>=getLevelThreshold(l))lvl=l;else break;}
+  lvl=Math.min(lvl,MAX_LEVEL);
+  const curr=getLevelThreshold(lvl);
+  const next=lvl<MAX_LEVEL?getLevelThreshold(lvl+1):getLevelThreshold(MAX_LEVEL);
+  let title='Foundation';
+  for(let i=LEVEL_TIERS.length-1;i>=0;i--){if(lvl+1>=LEVEL_TIERS[i][0]){title=LEVEL_TIERS[i][1];break;}}
+  const lbsGained=((lvl/MAX_LEVEL)*20).toFixed(1);
+  const milestone=MILESTONES[lvl]||null;
+  const progress=lvl>=MAX_LEVEL?1:Math.min(1,(xp-curr)/(next-curr));
+  return {level:lvl+1>MAX_LEVEL?MAX_LEVEL:lvl+1, title, curr, next, progress, lbsGained, milestone, maxed:lvl>=MAX_LEVEL};
 }
 
 function getStreak(s) {
@@ -784,7 +798,7 @@ function updateProgress() {
   document.getElementById('lvlNum').textContent=lvl.level;
   document.getElementById('lvlTitle').textContent=lvl.title;
   document.getElementById('xpFill').style.width=(lvl.progress*100)+'%';
-  document.getElementById('xpText').textContent=xp+' / '+lvl.next+' XP';
+  document.getElementById('xpText').textContent=lvl.maxed?'MAX LEVEL — GOAL ACHIEVED':xp+' / '+lvl.next+' XP (+'+lvl.lbsGained+' lbs)';
   // Streak
   document.getElementById('streakNum').textContent=streak;
   // Auto-log daily compliance
@@ -819,7 +833,7 @@ function showCompletion(prog,s) {
   document.getElementById('compMeals').textContent=prog.mealDone+'/'+getMeals().length;
   document.getElementById('compSupps').textContent=prog.suppDone+'/'+SUPPLEMENTS.length;
   document.getElementById('compStreak').textContent=streak;
-  document.getElementById('compLevelText').textContent='Level '+lvl.level+' — '+lvl.title;
+  document.getElementById('compLevelText').textContent='Level '+lvl.level+'/'+MAX_LEVEL+' — '+lvl.title+(lvl.milestone?' ('+lvl.milestone+')':' (+'+lvl.lbsGained+' lbs)');
   document.getElementById('completionOverlay').classList.add('show');
   // Animate XP counter
   const target=XP_VALUES.dayComplete;let current=0;const step=Math.ceil(target/25);
