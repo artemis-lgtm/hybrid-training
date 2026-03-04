@@ -66,7 +66,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .skin-step .step-num { width:28px; height:28px; border-radius:50%; background:var(--accent); color:var(--white); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .skin-step .step-num.keep { background:var(--green); }
 .skin-step .step-num.new { background:var(--pink); }
-.skin-step .step-num.weekly { background:var(--orange); }
+.skin-step .step-num.day-special { background:var(--orange); }
 .skin-step .info { flex:1; }
 .skin-step .product-name { font-size:14px; font-weight:600; }
 .skin-step .product-brand { font-size:12px; color:var(--accent2); margin-top:2px; }
@@ -272,7 +272,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="sub-tabs">
       <div class="sub-tab active" onclick="switchSkin('skinAm')">AM</div>
       <div class="sub-tab" onclick="switchSkin('skinPm')">PM</div>
-      <div class="sub-tab" onclick="switchSkin('skinWeekly')">Weekly</div>
       <div class="sub-tab" onclick="switchSkin('skinShop')">Shop List</div>
       <div class="sub-tab" onclick="switchSkin('skinDebloat')">De-Bloat</div>
     </div>
@@ -285,12 +284,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="toggle-row"><span style="font-size:13px;font-weight:600;">Retinol Night?</span><div class="toggle" id="retinolToggle" onclick="toggleRetinol()"><div class="knob"></div></div></div>
       <div id="skinPmList"></div>
       <div class="tip" id="retinolTip" style="display:none;">Retinol night: skip BHA exfoliant and La Mer moisturizer. Olay Retinol MAX has its own base. Apply retinol eye cream too.</div></div>
-    </div>
-    <div id="skinWeekly" class="sub-section"><div class="card"><div class="card-title">Weekly Treatments</div><div id="skinWeeklyList"></div></div>
-      <div class="card"><div class="card-title">Clinic (Monthly)</div>
-        <div class="skin-step"><div class="step-num weekly">C</div><div class="info"><div class="product-name">Microneedling + Exosome Serum</div><div class="product-detail">Korean derm protocol for pore reduction, texture, collagen. 3-4 sessions then quarterly.</div><div class="product-price">~$300-500/session</div></div></div>
-        <div class="skin-step"><div class="step-num weekly">C</div><div class="info"><div class="product-name">Tear Trough Filler Consultation</div><div class="product-detail">HA filler for under-eye bags (structural component). Lasts 12-18 months. Dr. Ryan Greene, Weston FL.</div><div class="product-price">~$600-1,000</div></div></div>
-      </div>
     </div>
     <div id="skinShop" class="sub-section">
       <div class="card"><div class="card-title">Shopping List <span class="badge new-badge">NEW ITEMS</span></div><div id="skinShopList"></div>
@@ -612,7 +605,9 @@ const SKIN_AM = [
   {num:3, status:'new', name:'Niacinamide', brand:'COSRX The Niacinamide 15 Serum', detail:'15% niacinamide. Pore minimizer, brightener, barrier repair.', price:'~$20'},
   {num:4, status:'new', name:'Under-Eye Caffeine', brand:'The Ordinary Caffeine Solution 5% + EGCG', detail:'Tap under eyes + orbital bone with ring finger. Constricts blood vessels, de-puffs overnight swelling. Use BEFORE sunscreen.', price:'~$8'},
   {num:5, status:'new', name:'Sunscreen', brand:'Beauty of Joseon Relief Sun SPF50+ PA++++', detail:'#1 Korean sunscreen. Rice bran + probiotics, zero white cast. THE most important product. LAST step.', price:'~$16'},
+  {num:6, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
 ];
+function getSkinAMToday() { const dow=new Date().getDay(); return SKIN_AM.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_PM_FULL = [
   {num:1, status:'new', name:'Oil Cleanser', brand:'Kose Softymo Speedy Cleansing Oil', detail:'DRY face, massage 60s, rinse. Dissolves sunscreen + sebum.', price:'~$10', retinolSkip:false},
   {num:2, status:'keep', name:'Water Cleanser', brand:'Round Lab Dokdo Cleanser', detail:'Double cleanse: oil first, then this.', retinolSkip:false},
@@ -625,12 +620,10 @@ const SKIN_PM_FULL = [
   {num:9, status:'keep', name:'Moisturizer', brand:'Creme de La Mer', detail:'Rich barrier cream. Warm between palms, press into skin.', retinolSkip:true, skipNote:'SKIP on retinol nights (retinol has its own base)'},
   {num:10, status:'keep', name:'Retinol (alt nights)', brand:'Olay Retinol 24 MAX', detail:'2-3x/week. On retinol nights: skip BHA + La Mer. Goes LAST.', retinolSkip:false, retinolOnly:true},
   {num:11, status:'keep', name:'Eye Cream', brand:'INKEY List Retinol Eye Cream', detail:'Ring finger, tap gently under eyes + crow\'s feet. Retinol nights only.', retinolSkip:false, retinolOnly:true},
+  {num:12, status:'new', name:'BHA Deep Clean (T-Zone)', brand:'COSRX BHA Blackhead Power Liquid', detail:'WEDNESDAY TREATMENT: Extra concentrated application on nose + chin + forehead. Leave 20 min before next step. Same product as daily BHA, deeper treatment.', retinolSkip:true, skipNote:'SKIP on retinol nights', days:[3]},
+  {num:13, status:'new', name:'Sheet Mask', brand:'Mediheal NMF Aquaring Ampoule Mask', detail:'FRIDAY TREATMENT: 15-20 min after essences, before moisturizer. Lean back and relax. Deep hydration boost for the weekend.', price:'~$15 (10pk)', retinolSkip:false, days:[5]},
 ];
-const SKIN_WEEKLY = [
-  {name:'Sheet Mask', brand:'Mediheal NMF Aquaring Ampoule Mask', detail:'1-2x/week for 15-20 min. Deep hydration boost. Friday or Saturday night.', price:'~$15 (10pk)'},
-  {name:'BHA Deep Clean', brand:'COSRX BHA Blackhead Power Liquid', detail:'Concentrated application on nose/T-zone. Leave 20 min, follow with sheet mask.'},
-  {name:'Scalp Massage', brand:'5 min with fingertips', detail:'Stimulates blood flow. Do in shower with shampoo.'},
-];
+function getSkinPMToday() { const dow=new Date().getDay(); return SKIN_PM_FULL.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_SHOP = [
   {name:'Round Lab Dokdo Cleanser', price:'$16', where:'Amazon/Olive Young'},
   {name:'Kose Softymo Speedy Cleansing Oil', price:'$10', where:'Amazon'},
@@ -642,6 +635,8 @@ const SKIN_SHOP = [
   {name:'Mediheal NMF Aquaring (10pk)', price:'$15', where:'Amazon'},
   {name:'The Ordinary Caffeine 5% + EGCG', price:'$8', where:'Ulta/Sephora'},
   {name:'OMRE NMN + Resveratrol (oral supp)', price:'$45', where:'Amazon'},
+  {name:'Microneedling + Exosome Serum', price:'$300-500/session', where:'Korean derm -- 3-4 sessions then quarterly'},
+  {name:'Tear Trough Filler Consult', price:'$600-1,000', where:'Dr. Ryan Greene, Weston FL'},
 ];
 const DEBLOAT_AM = [
   {num:1, name:'Ice Water Face Dunk', detail:'Fill bowl with ice water. Submerge face 15-30 seconds, repeat 2-3x. Instant vasoconstriction -- tightens and depuffs immediately. Do this first thing.', tool:'Bowl + ice (or ice roller from freezer)'},
@@ -769,7 +764,7 @@ function getDailyProgress() {
   exercises.forEach((_,i)=>{total++;if(s.exerciseChecks[d+'_ex_'+i]){done++;exDone++;}});
   getMeals().forEach((_,i)=>{total++;if(s.mealChecks[d+'_meal_'+i]){done++;mealDone++;}});
   SUPPLEMENTS.forEach((_,i)=>{total++;if(s.suppChecks[d+'_supp_'+i]){done++;suppDone++;}});
-  SKIN_AM.forEach(item=>{total++;if(s.skinChecks[d+'_am_'+item.num])done++;});
+  getSkinAMToday().forEach((_,i)=>{total++;if(s.skinChecks[d+'_am_'+(i+1)])done++;});
   DEBLOAT_AM.forEach(item=>{total++;if(s.skinChecks[d+'_debloat_'+item.num])done++;});
   return {done,total,pct:total?Math.round(done/total*100):0,exDone,mealDone,suppDone,exTotal:exercises.length};
 }
@@ -843,6 +838,11 @@ function checkSectionComplete(type) {
     if(getMeals().every((_,i)=>s.mealChecks[d+'_meal_'+i]))showSectionToast('nutrition complete',getMeals().length*8);
   }else if(type==='supplement'){
     if(SUPPLEMENTS.every((_,i)=>s.suppChecks[d+'_supp_'+i]))showSectionToast('stack complete',SUPPLEMENTS.length*5);
+  }else if(type==='skincare'){
+    const amItems=getSkinAMToday();
+    const amDone=amItems.every((_,i)=>s.skinChecks[d+'_am_'+(i+1)]);
+    const dbDone=DEBLOAT_AM.every(item=>s.skinChecks[d+'_debloat_'+item.num]);
+    if(amDone&&dbDone)showSectionToast('skincare complete',(amItems.length+DEBLOAT_AM.length)*5);
   }
 }
 
@@ -893,13 +893,14 @@ function skinStepHTML(item, checkKey, showPrice) {
   html += `</div><div class="check ${done?'done':''}" onclick="toggleSkinCheck('${k}')"></div></div>`;
   return html;
 }
-function renderSkinAm() { document.getElementById('skinAmList').innerHTML = SKIN_AM.map(i=>skinStepHTML(i,'am',true)).join(''); }
+function renderSkinAm() { document.getElementById('skinAmList').innerHTML = getSkinAMToday().map((item,idx)=>{const renumbered={...item,num:idx+1};return skinStepHTML(renumbered,'am',true);}).join(''); }
 function renderSkinPm() {
   const s = getState();
   const isRetinol = s.retinolNight;
   document.getElementById('retinolToggle').className = 'toggle'+(isRetinol?' on':'');
   document.getElementById('retinolTip').style.display = isRetinol?'block':'none';
-  const items = SKIN_PM_FULL.filter(i => {
+  const dayFiltered = getSkinPMToday();
+  const items = dayFiltered.filter(i => {
     if (isRetinol && i.retinolSkip) return false;
     if (!isRetinol && i.retinolOnly) return false;
     return true;
@@ -911,9 +912,9 @@ function renderSkinPm() {
     return html;
   }).join('');
 }
-function renderSkinWeekly() { document.getElementById('skinWeeklyList').innerHTML = SKIN_WEEKLY.map((w,i)=>`<div class="skin-step"><div class="step-num weekly">${i+1}</div><div class="info"><div class="product-name">${w.name}</div><div class="product-brand">${w.brand}</div><div class="product-detail">${w.detail}</div>${w.price?'<div class="product-price">'+w.price+'</div>':''}</div></div>`).join(''); }
+// Weekly tab removed -- treatments integrated into specific days (scalp Tue/Thu/Sat AM, BHA deep clean Wed PM, sheet mask Fri PM)
 function renderSkinShop() { document.getElementById('skinShopList').innerHTML = SKIN_SHOP.map((s,i)=>`<div class="skin-step"><div class="step-num new">${i+1}</div><div class="info"><div class="product-name">${s.name}</div><div class="product-detail">${s.where}</div></div><div style="font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;">${s.price}</div></div>`).join(''); }
-function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; const wasOff=!s.skinChecks[key]; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); if(wasOff){const type=k.startsWith('debloat')?'debloat':k.startsWith('acne')?'acne':'skincare';grantXP(type);} updateProgress(); }
+function toggleSkinCheck(k) { const s=getState(); const key=today()+'_'+k; const wasOff=!s.skinChecks[key]; s.skinChecks[key]=!s.skinChecks[key]; saveState(s); renderSkinAm(); renderSkinPm(); if(wasOff){const type=k.startsWith('debloat')?'debloat':k.startsWith('acne')?'acne':'skincare';grantXP(type);} updateProgress(); checkSectionComplete('skincare'); }
 function toggleRetinol() { const s=getState(); s.retinolNight=!s.retinolNight; saveState(s); renderSkinPm(); }
 
 // ========== DE-BLOAT ==========
@@ -1290,7 +1291,7 @@ function closeModal() { document.getElementById('editModal').classList.remove('s
 
 // ========== INIT ==========
 function init() {
-  renderSkinAm(); renderSkinPm(); renderSkinWeekly(); renderSkinShop();
+  renderSkinAm(); renderSkinPm(); renderSkinShop();
   renderSupps(); renderMealPlan();
   renderPeriodBanner(); renderWeekGrid(); renderTrainToday();
   updateProgress();
