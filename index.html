@@ -830,7 +830,7 @@ function resetXP() {
   const s=getState();s.xp=0;s.completedDays=[];s.completionShown={};saveState(s);updateProgress();
 }
 // One-time XP reset (requested 2026-03-03)
-(function(){const s=getState();if(!s._xpReset030326){s.xp=0;s.completedDays=[];s.completionShown={};s._xpReset030326=true;saveState(s);}})();
+(function(){const s=getState();if(!s._xpReset030326b){s.xp=0;s.completedDays=[];s.completionShown={};s._xpReset030326b=true;saveState(s);}})();
 
 function updateProgress() {
   const s=getState();const prog=getDailyProgress();
