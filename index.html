@@ -1528,9 +1528,29 @@ function renderActualIntake() {
 }
 function updateMacrosWithActual() {
   const entries = getTodayActual();
-  if (!entries.length) return;
-  let cal=0,p=0,c=0,f=0;
-  entries.forEach(e=>{cal+=e.cal||0;p+=e.p||0;c+=e.c||0;f+=e.f||0;});
+  const s = getState();
+  const meals = getMeals();
+  let cal=0, p=0, c=0, f=0;
+  // Track which planned meal slots are replaced by actual entries
+  const replacedSlots = new Set();
+  entries.forEach(a => {
+    // Add actual logged macros
+    cal += a.cal||0; p += a.p||0; c += a.c||0; f += a.f||0;
+    // Mark which plan slots this replaces
+    if (a.slot !== undefined) replacedSlots.add(a.slot);
+    if (a.meal) {
+      meals.forEach((m,i) => {
+        if (m.name.toLowerCase().includes(a.meal.toLowerCase())) replacedSlots.add(i);
+      });
+    }
+  });
+  // Add checked planned meals that WEREN'T replaced by actuals
+  meals.forEach((m,i) => {
+    if (!replacedSlots.has(i) && s.mealChecks[today()+'_meal_'+i]) {
+      cal += m.cal; p += m.p; c += m.c; f += m.f;
+    }
+  });
+  if (cal === 0 && p === 0 && c === 0 && f === 0) return;
   document.getElementById('calVal').textContent=cal;
   document.getElementById('proVal').textContent=p+'g';
   document.getElementById('carbVal').textContent=c+'g';
