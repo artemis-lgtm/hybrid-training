@@ -334,7 +334,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="sub-tab active" onclick="switchTrain('trainToday')">Today</div>
       <div class="sub-tab" onclick="switchTrain('trainPlan')">Plan</div>
       <div class="sub-tab" onclick="switchTrain('trainStretch')">Stretch</div>
-      <div class="sub-tab" onclick="switchTrain('trainTrack')">Track</div>
+
     </div>
     <div id="trainToday" class="sub-section active">
       <div id="periodBanner"></div>
@@ -358,23 +358,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--accent)"></span>APT Strengthening</div><div id="aptStrength"></div></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Mobility Work</div><div id="wedMobility"></div></div>
     </div>
-    <div id="trainTrack" class="sub-section">
-      <div class="card"><div class="card-title">Body Weight</div><div class="progress-input"><input type="number" id="weightInput" placeholder="lbs" step="0.1"><button onclick="logWeight()">Log</button></div><div id="weightLog"></div></div>
-      <div class="card"><div class="card-title">Waist (inches)</div><div class="progress-input"><input type="number" id="waistInput" placeholder="inches" step="0.1"><button onclick="logWaist()">Log</button></div><div id="waistLog"></div></div>
-      <div class="card"><div class="card-title">Lift PRs</div><div class="progress-input" style="flex-wrap:wrap;"><input type="text" id="liftName" placeholder="Exercise" style="flex:2;"><input type="number" id="liftWeight" placeholder="lbs" style="flex:1;"><input type="number" id="liftReps" placeholder="reps" style="flex:1;"><button onclick="logLift()">Log</button></div><div id="liftLog"></div></div>
-      <div class="card" id="overviewStats"></div>
-    </div>
     </div>
   </div>
 
   <!-- PROGRESS -->
   <div id="progress" class="main-section">
     <div class="sub-tabs">
-      <div class="sub-tab active" onclick="switchProgress('progBody')">Body</div>
+      <div class="sub-tab active" onclick="switchProgress('progTrack')">Track</div>
+      <div class="sub-tab" onclick="switchProgress('progBody')">Body</div>
       <div class="sub-tab" onclick="switchProgress('progLifts')">Lifts</div>
       <div class="sub-tab" onclick="switchProgress('progCompliance')">Compliance</div>
     </div>
-    <div id="progBody" class="sub-section active">
+    <div id="progTrack" class="sub-section active">
+      <div class="card"><div class="card-title">Body Weight</div><div class="progress-input"><input type="number" id="weightInput" placeholder="lbs" step="0.1"><button onclick="logWeight()">Log</button></div><div id="weightLog"></div></div>
+      <div class="card"><div class="card-title">Waist (inches)</div><div class="progress-input"><input type="number" id="waistInput" placeholder="inches" step="0.1"><button onclick="logWaist()">Log</button></div><div id="waistLog"></div></div>
+      <div class="card"><div class="card-title">Lift PRs</div><div class="progress-input" style="flex-wrap:wrap;"><input type="text" id="liftName" placeholder="Exercise" style="flex:2;"><input type="number" id="liftWeight" placeholder="lbs" style="flex:1;"><input type="number" id="liftReps" placeholder="reps" style="flex:1;"><button onclick="logLift()">Log</button></div><div id="liftLog"></div></div>
+      <div class="card" id="overviewStats"></div>
+    </div>
+    <div id="progBody" class="sub-section">
       <div class="card"><div class="card-title">Weight Over Time</div><div class="chart-range"><button class="chart-range-btn active" onclick="setWeightRange('all',this)">All</button><button class="chart-range-btn" onclick="setWeightRange(30,this)">30d</button><button class="chart-range-btn" onclick="setWeightRange(90,this)">90d</button><button class="chart-range-btn" onclick="setWeightRange(180,this)">6mo</button></div><div class="chart-container"><canvas id="weightChart"></canvas></div><div class="chart-stats" id="weightChartStats"></div></div>
       <div class="card"><div class="card-title">Waist Trend</div><div class="chart-container"><canvas id="waistChart"></canvas></div><div class="chart-stats" id="waistChartStats"></div></div>
       <div class="card"><div class="card-title">Body Composition (Est.)</div><div class="chart-container"><canvas id="compChart"></canvas></div><div class="chart-stats" id="compChartStats"></div></div>
@@ -919,7 +920,7 @@ function switchMain(id) {
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
   if (id==='training') { renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
-  if (id==='progress') { renderWeightChart(); renderWaistChart(); renderCompChart(); }
+  if (id==='progress') { renderWeightLog(); renderWaistLog(); renderLiftLog(); renderOverviewStats(); }
 }
 function switchSkin(id) {
   document.querySelectorAll('#skincare .sub-section').forEach(s=>s.classList.remove('active'));
@@ -942,13 +943,13 @@ function switchTrain(id) {
   if (id==='trainToday') { renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
   if (id==='trainPlan') renderPlan();
   if (id==='trainStretch') renderStretches();
-  if (id==='trainTrack') { renderWeightLog(); renderWaistLog(); renderLiftLog(); renderOverviewStats(); }
 }
 function switchProgress(id) {
   document.querySelectorAll('#progress .sub-section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('#progress .sub-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
+  if (id==='progTrack') { renderWeightLog(); renderWaistLog(); renderLiftLog(); renderOverviewStats(); }
   if (id==='progBody') { renderWeightChart(); renderWaistChart(); renderCompChart(); }
   if (id==='progLifts') { renderLiftSelect(); renderVolumeChart(); }
   if (id==='progCompliance') renderComplianceChart();
