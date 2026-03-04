@@ -155,8 +155,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 /* Week grid */
 .week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:12px; }
-.week-day { text-align:center; padding:8px 2px; border-radius:8px; background:var(--surface); }
+.week-day { text-align:center; padding:8px 2px; border-radius:8px; background:var(--surface); cursor:pointer; transition:background .15s,border-color .15s; }
+.week-day:active { background:var(--border); }
 .week-day.today { border:2px solid var(--accent); }
+.week-day.selected { background:var(--accent); }
+.week-day.selected .d-name, .week-day.selected .d-num, .week-day.selected .d-type { color:var(--white) !important; }
 .week-day.has-workout .d-type { font-size:8px; color:var(--accent); }
 .week-day .d-name { font-size:10px; color:var(--muted); }
 .week-day .d-num { font-size:14px; font-weight:600; margin:2px 0; }
@@ -352,7 +355,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div id="training" class="main-section">
     <div class="sub-tabs">
       <div class="sub-tab active" onclick="switchTrain('trainToday')">Today</div>
-      <div class="sub-tab" onclick="switchTrain('trainPlan')">Plan</div>
       <div class="sub-tab" onclick="switchTrain('trainStretch')">Stretch</div>
 
     </div>
@@ -368,11 +370,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="card"><div class="card-title">Exercises</div><div id="todayExercises"></div></div>
       <div class="card"><div class="card-title">Meals</div><div id="todayMeals"></div></div>
     </div>
-    <div id="trainPlan" class="sub-section">
-      <div id="planPeriodInfo"></div>
-      <div id="planDays"></div>
-      <div id="planNextBlock"></div>
-    </div>
+
     <div id="trainStretch" class="sub-section">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--accent2)"></span>APT Correction Stretches</div><div id="aptStretches"></div></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--accent)"></span>APT Strengthening</div><div id="aptStrength"></div></div>
@@ -940,7 +938,7 @@ function switchMain(id) {
   document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
-  if (id==='training') { renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
+  if (id==='training') { selectedDayIdx = new Date().getDay(); renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
   if (id==='progress') { renderWeightLog(); renderWaistLog(); renderLiftLog(); renderOverviewStats(); }
 }
 function switchSkin(id) {
@@ -961,8 +959,7 @@ function switchTrain(id) {
   document.querySelectorAll('#training .sub-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
-  if (id==='trainToday') { renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
-  if (id==='trainPlan') renderPlan();
+  if (id==='trainToday') { selectedDayIdx = new Date().getDay(); renderPeriodBanner(); renderWeekGrid(); renderTrainToday(); }
   if (id==='trainStretch') renderStretches();
 }
 function switchProgress(id) {
@@ -1100,6 +1097,7 @@ function renderPeriodBanner() {
 }
 
 // ========== WEEK GRID ==========
+let selectedDayIdx = new Date().getDay(); // default to today
 function renderWeekGrid() {
   const dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
   const dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
@@ -1111,116 +1109,73 @@ function renderWeekGrid() {
     const d = new Date(now);
     d.setDate(d.getDate() - dow + i);
     const isToday = d.toDateString() === now.toDateString();
+    const isSelected = i === selectedDayIdx;
     const dk = dayKeys[i];
     const dayPlan = plan[dk];
     const hasWorkout = dayPlan && dayPlan.exercises && dayPlan.exercises.length > 0;
-    html += `<div class="week-day ${isToday?'today':''} ${hasWorkout?'has-workout':''}"><div class="d-name">${dayNames[i]}</div><div class="d-num">${d.getDate()}</div>${hasWorkout?'<div class="d-type">'+dayPlan.type.toUpperCase().slice(0,3)+'</div>':''}</div>`;
+    html += `<div class="week-day ${isToday?'today':''} ${isSelected?'selected':''} ${hasWorkout?'has-workout':''}" onclick="selectDay(${i})"><div class="d-name">${dayNames[i]}</div><div class="d-num">${d.getDate()}</div>${hasWorkout?'<div class="d-type">'+dayPlan.type.toUpperCase().slice(0,3)+'</div>':''}</div>`;
   }
   document.getElementById('weekGrid').innerHTML = html;
 }
+function selectDay(i) {
+  selectedDayIdx = i;
+  renderWeekGrid();
+  renderTrainToday();
+}
 
-// ========== TODAY EXERCISES ==========
+// ========== DAY EXERCISES ==========
+function isViewingToday() { return selectedDayIdx === new Date().getDay(); }
 function renderTrainToday() {
   const plan = buildPlan();
   const dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
-  const dk = dayKeys[new Date().getDay()];
+  const dk = dayKeys[selectedDayIdx];
   const dayPlan = plan[dk];
   const s = getState();
   const typeClass = dayPlan.type || 'rest';
-  document.getElementById('todayDayLabel').innerHTML = `<span class="day-label ${typeClass}">${dayPlan.title}</span>`;
+  const viewingToday = isViewingToday();
+  const dayLabel = viewingToday ? dayPlan.title : dayKeys[selectedDayIdx].toUpperCase() + ' -- ' + dayPlan.title;
+  document.getElementById('todayDayLabel').innerHTML = `<span class="day-label ${typeClass}">${dayLabel}</span>`;
   if (!dayPlan.exercises || dayPlan.exercises.length === 0) {
     document.getElementById('todayExercises').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Rest day. Recover. Stretch if you feel like it.</div>';
   } else {
     document.getElementById('todayExercises').innerHTML = dayPlan.exercises.map((ex,i)=>{
       const k = today()+'_ex_'+i;
-      const done = s.exerciseChecks[k];
+      const done = viewingToday ? s.exerciseChecks[k] : false;
       const tagHtml = ex.tag ? `<span class="exercise-tag ${ex.tag}">${ex.tag.toUpperCase()}</span>` : '';
-      return `<div class="exercise ${done?'completed':''} editable" onclick="toggleExercise(${i})"><div class="info"><div class="name">${ex.name} ${tagHtml}</div><div class="detail">${ex.detail}</div></div><div class="check ${done?'done':''}"></div></div>`;
+      if (viewingToday) {
+        return `<div class="exercise ${done?'completed':''} editable" onclick="toggleExercise(${i})"><div class="info"><div class="name">${ex.name} ${tagHtml}</div><div class="detail">${ex.detail}</div></div><div class="check ${done?'done':''}"></div></div>`;
+      } else {
+        return `<div class="exercise"><div class="info"><div class="name">${ex.name} ${tagHtml}</div><div class="detail">${ex.detail}</div></div></div>`;
+      }
     }).join('');
   }
-  // Today meals (carb cycling aware) + actual intake overlay
-  const todayMeals = getMeals();
-  const actualEntries = getTodayActual();
-  let mealsHtml = todayMeals.map((m,i)=>{
-    const k = today()+'_meal_'+i;
-    const done = s.mealChecks[k];
-    // Check if an actual entry replaces this meal slot
-    const actual = actualEntries.find(a => a.slot === i || (a.meal && m.name.toLowerCase().includes(a.meal.toLowerCase())));
-    if (actual) {
-      return `<div class="exercise completed"><div class="info"><div class="name">${actual.item} <span style="font-size:10px;color:var(--accent2);">LOGGED</span></div><div class="detail">${actual.cal} cal | ${actual.p}g P | ${actual.c}g C | ${actual.f}g F</div></div><div class="check done"></div></div>`;
+  // Meals -- only show on today view
+  if (viewingToday) {
+    const todayMeals = getMeals();
+    const actualEntries = getTodayActual();
+    let mealsHtml = todayMeals.map((m,i)=>{
+      const k = today()+'_meal_'+i;
+      const done = s.mealChecks[k];
+      const actual = actualEntries.find(a => a.slot === i || (a.meal && m.name.toLowerCase().includes(a.meal.toLowerCase())));
+      if (actual) {
+        return `<div class="exercise completed"><div class="info"><div class="name">${actual.item} <span style="font-size:10px;color:var(--accent2);">LOGGED</span></div><div class="detail">${actual.cal} cal | ${actual.p}g P | ${actual.c}g C | ${actual.f}g F</div></div><div class="check done"></div></div>`;
+      }
+      return `<div class="exercise ${done?'completed':''}" onclick="toggleMeal(${i});renderTrainToday();"><div class="info"><div class="name">${m.name}</div><div class="detail">${m.desc}</div></div><div class="check ${done?'done':''}"></div></div>`;
+    }).join('');
+    const unmapped = actualEntries.filter(a => a.slot === undefined && !todayMeals.some(m => a.meal && m.name.toLowerCase().includes(a.meal.toLowerCase())));
+    if (unmapped.length) {
+      mealsHtml += unmapped.map(a => `<div class="exercise completed"><div class="info"><div class="name">${a.item} <span style="font-size:10px;color:var(--accent2);">LOGGED</span></div><div class="detail">${a.meal ? a.meal+' | ' : ''}${a.cal} cal | ${a.p}g P | ${a.c}g C | ${a.f}g F</div></div><div class="check done"></div></div>`).join('');
     }
-    return `<div class="exercise ${done?'completed':''}" onclick="toggleMeal(${i});renderTrainToday();"><div class="info"><div class="name">${m.name}</div><div class="detail">${m.desc}</div></div><div class="check ${done?'done':''}"></div></div>`;
-  }).join('');
-  // Append any actual entries that don't map to a meal slot (extras, snacks)
-  const unmapped = actualEntries.filter(a => a.slot === undefined && !todayMeals.some(m => a.meal && m.name.toLowerCase().includes(a.meal.toLowerCase())));
-  if (unmapped.length) {
-    mealsHtml += unmapped.map(a => `<div class="exercise completed"><div class="info"><div class="name">${a.item} <span style="font-size:10px;color:var(--accent2);">LOGGED</span></div><div class="detail">${a.meal ? a.meal+' | ' : ''}${a.cal} cal | ${a.p}g P | ${a.c}g C | ${a.f}g F</div></div><div class="check done"></div></div>`).join('');
+    document.getElementById('todayMeals').innerHTML = mealsHtml;
+    document.getElementById('todayMeals').parentElement.style.display = '';
+  } else {
+    document.getElementById('todayMeals').parentElement.style.display = 'none';
   }
-  document.getElementById('todayMeals').innerHTML = mealsHtml;
 }
 function toggleExercise(i) { const s=getState(); const k=today()+'_ex_'+i; const wasOff=!s.exerciseChecks[k]; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderTrainToday(); if(wasOff)grantXP('exercise'); updateProgress(); checkSectionComplete('exercise'); }
 
 // ========== PLAN VIEW ==========
-function renderPlan() {
-  const p = getPeriod();
-  const plan = buildPlan();
-  const rotLabels = ['A','B','C'];
-  const accNames = {
-    A: {tuePush:'Incline DB Press',tueCurl:'Barbell Curl',tueTri:'OH Tricep Ext',wedSingle:'Bulgarian Split Squat',wedP1:'Box Jumps',wedP2:'Broad Jumps'},
-    B: {tuePush:'Weighted Dips',tueCurl:'Incline DB Curl',tueTri:'Rope Pushdown',wedSingle:'Front Squat',wedP1:'Hurdle Hops',wedP2:'Lateral Bounds'},
-    C: {tuePush:'Landmine Press',tueCurl:'Spider Curl',tueTri:'CG Bench',wedSingle:'Walking Lunge',wedP1:'Depth Jumps',wedP2:'Single-Leg Bounds'},
-  };
-  // Period info
-  const phaseLabel = p.phase===1?'Foundation':'Wave Loading';
-  let infoHtml = `<div class="period-banner${p.isDeload?' deload':''}"><div class="period-block">Block ${p.blockNum} -- ${phaseLabel}</div><div class="period-phase">Week ${p.weekInBlock} of 4 | Rotation ${rotLabels[p.acc]}${p.isDeload?' | DELOAD WEEK':''}</div>`;
-  if (p.phase===2) infoHtml += `<div style="margin-top:6px;font-size:11px;"><span class="intensity-badge ${p.heavyUpper?'heavy':'moderate'}">${p.heavyUpper?'HEAVY':'MOD'} UPPER</span> <span class="intensity-badge ${p.heavyLower?'heavy':'moderate'}">${p.heavyLower?'HEAVY':'MOD'} LOWER</span></div>`;
-  infoHtml += '</div>';
-  document.getElementById('planPeriodInfo').innerHTML = infoHtml;
-
-  // Days
-  const dayOrder = ['tue','wed','thu','fri','sat','sun','mon'];
-  let daysHtml = '';
-  dayOrder.forEach(dk => {
-    const d = plan[dk];
-    const typeClass = d.type || 'rest';
-    daysHtml += `<div class="card${p.isDeload?' deload-card':''}"><div class="card-title"><span class="day-label ${typeClass}" style="margin-bottom:0;">${d.label}</span> <span style="font-size:13px;font-weight:400;color:var(--text);">${d.title}</span></div>`;
-    if (d.exercises.length===0) {
-      daysHtml += '<div style="color:var(--muted);font-size:13px;">Rest & recover</div>';
-    } else {
-      d.exercises.forEach(ex => {
-        const tagHtml = ex.tag ? `<span class="exercise-tag ${ex.tag}">${ex.tag.toUpperCase()}</span>` : '';
-        daysHtml += `<div class="exercise"><div class="info"><div class="name">${ex.name} ${tagHtml}</div><div class="detail">${ex.detail}</div></div></div>`;
-      });
-    }
-    daysHtml += '</div>';
-  });
-  document.getElementById('planDays').innerHTML = daysHtml;
-
-  // Next block preview
-  const nextBlockNum = p.blockNum + 1;
-  if (nextBlockNum <= TOTAL_BLOCKS) {
-    const np = {
-      weekNum: p.weekNum + (4 - p.weekInBlock + 1),
-      blockNum: nextBlockNum,
-      weekInBlock: 1,
-      isDeload: false,
-      phase: nextBlockNum <= 2 ? 1 : 2,
-      acc: (nextBlockNum - 1) % 3,
-      heavyUpper: nextBlockNum <= 2 ? true : nextBlockNum % 2 === 1,
-      heavyLower: nextBlockNum <= 2 ? true : nextBlockNum % 2 === 0,
-    };
-    const nr = rotLabels[np.acc];
-    const nAcc = accNames[nr] || {};
-    let npHtml = `<div class="next-preview"><div class="np-title">Coming Next: Block ${nextBlockNum} -- Rotation ${nr}</div>`;
-    if (np.phase===2) npHtml += `<div class="np-item"><span class="intensity-badge ${np.heavyUpper?'heavy':'moderate'}">${np.heavyUpper?'HEAVY':'MOD'} UPPER</span> <span class="intensity-badge ${np.heavyLower?'heavy':'moderate'}">${np.heavyLower?'HEAVY':'MOD'} LOWER</span></div>`;
-    npHtml += `<div class="np-item" style="margin-top:6px;">Tue accessories: ${nAcc.tuePush||''}, ${nAcc.tueCurl||''}, ${nAcc.tueTri||''}</div>`;
-    npHtml += `<div class="np-item">Wed accessories: ${nAcc.wedSingle||''}, ${nAcc.wedP1||''}, ${nAcc.wedP2||''}</div>`;
-    npHtml += '</div>';
-    document.getElementById('planNextBlock').innerHTML = npHtml;
-  } else {
-    document.getElementById('planNextBlock').innerHTML = '<div class="tip">Program complete! Time to reassess and set new targets.</div>';
-  }
-}
+// Plan view removed -- day grid is now clickable to preview any day's workout
 
 // ========== STRETCHES ==========
 function renderStretches() {
