@@ -367,6 +367,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="card"><div class="card-title">Waist Trend</div><div class="chart-container"><canvas id="waistChart"></canvas></div><div class="chart-stats" id="waistChartStats"></div></div>
       <div class="card"><div class="card-title">Lift Progression</div><select id="liftSelect" onchange="renderLiftChart()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);margin-bottom:8px;font-size:13px;"></select><div class="chart-container"><canvas id="liftChart"></canvas></div><div class="chart-stats" id="liftChartStats"></div></div>
       <div class="card"><div class="card-title">Weekly Volume</div><div class="chart-container"><canvas id="volumeChart"></canvas></div></div>
+      <div class="card"><div class="card-title">Daily Compliance</div><div class="chart-range"><button class="chart-range-btn active" onclick="setComplianceRange('all',this)">All</button><button class="chart-range-btn" onclick="setComplianceRange(14,this)">14d</button><button class="chart-range-btn" onclick="setComplianceRange(30,this)">30d</button></div><div class="chart-container"><canvas id="complianceChart"></canvas></div><div class="chart-stats" id="complianceChartStats"></div></div>
       <div class="card"><div class="card-title">Body Composition (Est.)</div><div class="chart-container"><canvas id="compChart"></canvas></div><div class="chart-stats" id="compChartStats"></div></div>
     </div>
   </div>
@@ -723,7 +724,7 @@ const STORAGE_KEY = 'healthHub';
 function getState() {
   let raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) { raw = localStorage.getItem('hybridApp'); if (raw) { localStorage.setItem(STORAGE_KEY, raw); localStorage.removeItem('hybridApp'); } }
-  const def = { skinChecks:{}, suppChecks:{}, mealChecks:{}, exerciseChecks:{}, retinolNight:false, dailyLog:{}, weightLog:[], waistLog:[], liftLog:[], plan:null, xp:0, completedDays:[], completionShown:{} };
+  const def = { skinChecks:{}, suppChecks:{}, mealChecks:{}, exerciseChecks:{}, retinolNight:false, dailyLog:{}, weightLog:[], waistLog:[], liftLog:[], complianceLog:[], plan:null, xp:0, completedDays:[], completionShown:{} };
   if (!raw) return def;
   try { return {...def, ...JSON.parse(raw)}; } catch(e) { return def; }
 }
@@ -760,13 +761,14 @@ function getDailyProgress() {
   const plan=buildPlan();const dayKeys=['sun','mon','tue','wed','thu','fri','sat'];
   const dk=dayKeys[new Date().getDay()];
   const exercises=plan[dk].exercises||[];
-  let done=0,total=0,exDone=0,mealDone=0,suppDone=0;
+  let done=0,total=0,exDone=0,mealDone=0,suppDone=0,skinDone=0,skinTotal=0;
   exercises.forEach((_,i)=>{total++;if(s.exerciseChecks[d+'_ex_'+i]){done++;exDone++;}});
   getMeals().forEach((_,i)=>{total++;if(s.mealChecks[d+'_meal_'+i]){done++;mealDone++;}});
   SUPPLEMENTS.forEach((_,i)=>{total++;if(s.suppChecks[d+'_supp_'+i]){done++;suppDone++;}});
-  getSkinAMToday().forEach((_,i)=>{total++;if(s.skinChecks[d+'_am_'+(i+1)])done++;});
-  DEBLOAT_AM.forEach(item=>{total++;if(s.skinChecks[d+'_debloat_'+item.num])done++;});
-  return {done,total,pct:total?Math.round(done/total*100):0,exDone,mealDone,suppDone,exTotal:exercises.length};
+  getSkinAMToday().forEach((_,i)=>{total++;skinTotal++;if(s.skinChecks[d+'_am_'+(i+1)]){done++;skinDone++;}});
+  DEBLOAT_AM.forEach(item=>{total++;skinTotal++;if(s.skinChecks[d+'_debloat_'+item.num]){done++;skinDone++;}});
+  const mealTotal=getMeals().length;
+  return {done,total,pct:total?Math.round(done/total*100):0,exDone,mealDone,mealTotal,suppDone,suppTotal:SUPPLEMENTS.length,skinDone,skinTotal,exTotal:exercises.length};
 }
 
 function grantXP(type) {
@@ -789,6 +791,16 @@ function updateProgress() {
   document.getElementById('xpText').textContent=xp+' / '+lvl.next+' XP';
   // Streak
   document.getElementById('streakNum').textContent=streak;
+  // Auto-log daily compliance
+  if(!s.complianceLog)s.complianceLog=[];
+  const existing=s.complianceLog.findIndex(c=>c.date===today());
+  const entry={date:today(),pct:prog.pct,
+    nutrition:prog.mealTotal?Math.round(prog.mealDone/prog.mealTotal*100):0,
+    skincare:prog.skinTotal?Math.round(prog.skinDone/prog.skinTotal*100):0,
+    supplements:prog.suppTotal?Math.round(prog.suppDone/prog.suppTotal*100):0,
+    training:prog.exTotal?Math.round(prog.exDone/prog.exTotal*100):0};
+  if(existing>=0)s.complianceLog[existing]=entry;else s.complianceLog.push(entry);
+  saveState(s);
   // Day completion
   if(prog.pct===100){
     if(!s.completedDays)s.completedDays=[];
@@ -876,7 +888,7 @@ function switchTrain(id) {
   if (id==='trainPlan') renderPlan();
   if (id==='trainStretch') renderStretches();
   if (id==='trainTrack') { renderWeightLog(); renderWaistLog(); renderLiftLog(); renderOverviewStats(); }
-  if (id==='trainCharts') { renderWeightChart(); renderWaistChart(); renderLiftSelect(); renderVolumeChart(); renderCompChart(); }
+  if (id==='trainCharts') { renderWeightChart(); renderWaistChart(); renderLiftSelect(); renderVolumeChart(); renderComplianceChart(); renderCompChart(); }
 }
 
 // ========== SKINCARE RENDERING ==========
@@ -1246,6 +1258,43 @@ function renderVolumeChart() {
     ctx.fillStyle='rgba(108,92,231,.6)';ctx.fillRect(x,y,bw,bh);
     ctx.fillStyle='#e8e8f0';ctx.font='11px -apple-system';ctx.textAlign='center';ctx.fillText(wk.count,x+bw/2,y-5);
     ctx.fillStyle='#8888a0';ctx.font='10px -apple-system';ctx.fillText(wk.label,x+bw/2,H-pad.b+15);});
+}
+let complianceChartRange = 'all';
+function setComplianceRange(r, btn) { complianceChartRange=r; document.querySelectorAll('#complianceChart').forEach(()=>{}); const card=btn.closest('.card'); card.querySelectorAll('.chart-range-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderComplianceChart(); }
+function renderComplianceChart() {
+  const s=getState();let data=[...(s.complianceLog||[])];
+  if(complianceChartRange!=='all'){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-complianceChartRange);data=data.filter(d=>new Date(d.date)>=cutoff);}
+  if(data.length<1){document.getElementById('complianceChartStats').textContent='Complete a day to see compliance chart.';return;}
+  const canvas=document.getElementById('complianceChart');const ctx=canvas.getContext('2d');
+  const w=canvas.width=canvas.offsetWidth*2;const h=canvas.height=200*2;
+  ctx.scale(2,2);const W=w/2;const H=h/2;const pad={t:20,r:20,b:30,l:35};const cw=W-pad.l-pad.r;const ch=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#1a1a25';ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='#2a2a3a';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.t+ch*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='#8888a0';ctx.font='10px -apple-system';ctx.textAlign='right';ctx.fillText(Math.round(100-25*i)+'%',pad.l-5,y+4);}
+  // Draw lines for each category
+  const colors={nutrition:'#00b894',skincare:'#6c5ce7',supplements:'#fdcb6e',training:'#e17055'};
+  const categories=['nutrition','skincare','supplements','training'];
+  categories.forEach(cat=>{
+    ctx.strokeStyle=colors[cat];ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();
+    data.forEach((d,i)=>{const x=data.length===1?pad.l+cw/2:pad.l+cw*i/(data.length-1);const y=pad.t+ch*(1-(d[cat]||0)/100);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+    // Dots
+    data.forEach((d,i)=>{const x=data.length===1?pad.l+cw/2:pad.l+cw*i/(data.length-1);const y=pad.t+ch*(1-(d[cat]||0)/100);ctx.fillStyle=colors[cat];ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();});
+  });
+  // Date labels
+  ctx.fillStyle='#8888a0';ctx.font='9px -apple-system';ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(data.length/5));
+  for(let i=0;i<data.length;i+=step){const x=data.length===1?pad.l+cw/2:pad.l+cw*i/(data.length-1);ctx.fillText(data[i].date.slice(5),x,H-pad.b+15);}
+  // Legend
+  const labels=[{c:'#00b894',n:'Nutrition'},{c:'#6c5ce7',n:'Skincare'},{c:'#fdcb6e',n:'Supplements'},{c:'#e17055',n:'Training'}];
+  const lw=W/labels.length;
+  labels.forEach((l,i)=>{const x=pad.l+i*lw;ctx.fillStyle=l.c;ctx.fillRect(x,H-10,8,8);ctx.fillStyle='#e8e8f0';ctx.font='9px -apple-system';ctx.textAlign='left';ctx.fillText(l.n,x+11,H-3);});
+  // Stats
+  const latest=data[data.length-1];
+  const avg=cat=>data.length?Math.round(data.reduce((a,d)=>a+(d[cat]||0),0)/data.length):0;
+  document.getElementById('complianceChartStats').textContent=`Today: Nutrition ${latest.nutrition}% | Skincare ${latest.skincare}% | Supps ${latest.supplements}% | Training ${latest.training}% | Avg overall: ${avg('nutrition')}% / ${avg('skincare')}% / ${avg('supplements')}% / ${avg('training')}%`;
 }
 function renderCompChart() {
   const s=getState();if(s.weightLog.length<2||s.waistLog.length<2){document.getElementById('compChartStats').textContent='Need weight + waist data.';return;}
