@@ -767,7 +767,8 @@ function getState() {
 }
 function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
-function today() { return new Date().toISOString().slice(0,10); }
+function localDateStr(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today() { return localDateStr(); }
 
 // ========== GAMIFICATION ==========
 // Level 100 = +20 lbs lean muscle (182→202). Formula: 25 × L² cumulative XP.
@@ -803,7 +804,7 @@ function getStreak(s) {
   const d=new Date();d.setHours(0,0,0,0);
   if(days.includes(today()))streak++;
   let check=new Date(d);check.setDate(check.getDate()-1);
-  while(days.includes(check.toISOString().slice(0,10))){streak++;check.setDate(check.getDate()-1);}
+  while(days.includes(localDateStr(check))){streak++;check.setDate(check.getDate()-1);}
   return streak;
 }
 
@@ -1303,7 +1304,7 @@ function renderVolumeChart() {
   // Compute weekly exercise completion
   const weeks=[];const now=new Date();
   for(let i=3;i>=0;i--){const wStart=new Date(now);wStart.setDate(wStart.getDate()-wStart.getDay()-i*7);
-    let count=0;for(let d=0;d<7;d++){const day=new Date(wStart);day.setDate(day.getDate()+d);const dk=day.toISOString().slice(0,10);
+    let count=0;for(let d=0;d<7;d++){const day=new Date(wStart);day.setDate(day.getDate()+d);const dk=localDateStr(day);
     Object.keys(s.exerciseChecks).forEach(k=>{if(k.startsWith(dk)&&s.exerciseChecks[k])count++;});}
     weeks.push({label:'Wk '+(4-i),count});}
   const maxC=Math.max(1,...weeks.map(w=>w.count));const pad={t:20,r:20,b:30,l:45};const cw=W-pad.l-pad.r;const ch=H-pad.t-pad.b;
