@@ -621,24 +621,38 @@ function buildPlan(periodOverride) {
     {name:'Push-ups', detail:'To failure x 3-4 sets', tag:'compound'},
   ];
 
-  // ---- ABS (rotate A/B/C, added to every training day) ----
-  const absBlock = [[
-    {name:'Hanging Leg Raises', detail:dl?'3x10 easy':'3x15', tag:'abs'},
-    {name:'Cable Crunches', detail:dl?'3x12 light':'3x15 (60s rest)', tag:'abs'},
-    {name:'Pallof Press', detail:dl?'2x12ea light':'3x12 each side (60s rest)', tag:'abs'},
-  ],[
-    {name:'Ab Wheel Rollouts', detail:dl?'3x6 easy':'3x10 (60s rest)', tag:'abs'},
-    {name:'Decline Crunches', detail:dl?'3x12 easy':'3x15 (60s rest)', tag:'abs'},
-    {name:'Cable Woodchops', detail:dl?'2x10ea light':'3x12 each side (60s rest)', tag:'abs'},
-  ],[
-    {name:'Reverse Crunches', detail:dl?'3x10 easy':'3x15 (60s rest)', tag:'abs'},
-    {name:'Plank Hold', detail:dl?'2x30s':'3x45-60s', tag:'abs'},
-    {name:'Bicycle Crunches', detail:dl?'3x12 easy':'3x20 (controlled, no momentum)', tag:'abs'},
-  ]][a];
-  [tue, wed, thu, fri].forEach(arr => absBlock.forEach(ex => arr.push({...ex})));
-  // Saturday abs: lighter, 2 exercises
-  sat.push({name:absBlock[0].name, detail:absBlock[0].detail, tag:'abs'});
-  sat.push({name:absBlock[1].name, detail:absBlock[1].detail, tag:'abs'});
+  // ---- ABS (unique circuit per day, no repeats within a week) ----
+  const absCircuits = [
+    [ // Tuesday — anti-extension focus
+      {name:'Ab Wheel Rollouts', detail:dl?'3x6 easy':'3x10 (slow eccentric, squeeze at bottom)', tag:'abs'},
+      {name:'Dead Bugs', detail:dl?'3x8ea easy':'3x12 each side (press low back into floor, slow)', tag:'abs'},
+      {name:'Body Saw Plank', detail:dl?'2x30s':'3x10 reps (forearm plank, rock forward + back)', tag:'abs'},
+    ],
+    [ // Wednesday — rotation + obliques
+      {name:'Cable Woodchops High-to-Low', detail:dl?'2x10ea light':'3x12 each side (pivot hips, control the negative)', tag:'abs'},
+      {name:'Copenhagen Plank', detail:dl?'2x20s ea':'3x30s each side (top leg on bench, brutal oblique hold)', tag:'abs'},
+      {name:'Pallof Press + Rotation', detail:dl?'2x8ea light':'3x10 each side (press out, rotate away from cable)', tag:'abs'},
+    ],
+    [ // Thursday — lower abs + hip flexion
+      {name:'Hanging Leg Raises', detail:dl?'3x8 easy':'3x12-15 (straight legs, no swinging, pause at top)', tag:'abs'},
+      {name:'Reverse Crunches (Decline)', detail:dl?'3x10 easy':'3x15 (curl hips off bench, squeeze hard at top)', tag:'abs'},
+      {name:'Flutter Kicks', detail:dl?'2x20s':'3x30s (hands under glutes, low back pressed down)', tag:'abs'},
+    ],
+    [ // Friday — weighted + strength
+      {name:'Cable Crunches', detail:dl?'3x12 light':'3x15 heavy (rope attachment, crunch ribs to hips, not neck)', tag:'abs'},
+      {name:'Weighted Decline Sit-ups', detail:dl?'3x10 easy':'3x12 (hold plate at chest, slow negative)', tag:'abs'},
+      {name:'Landmine Rotations', detail:dl?'2x8ea light':'3x10 each side (barbell in corner, arms straight, rotate from core)', tag:'abs'},
+    ],
+    [ // Saturday — quick beach finisher
+      {name:'Bicycle Crunches', detail:dl?'2x15 easy':'3x20 (slow, elbow to opposite knee, full extension)', tag:'abs'},
+      {name:'Hollow Body Hold', detail:dl?'2x20s':'3x30-45s (arms overhead, legs straight, low back glued to floor)', tag:'abs'},
+    ],
+  ];
+  tue.push(...absCircuits[0].map(ex=>({...ex})));
+  wed.push(...absCircuits[1].map(ex=>({...ex})));
+  thu.push(...absCircuits[2].map(ex=>({...ex})));
+  fri.push(...absCircuits[3].map(ex=>({...ex})));
+  sat.push(...absCircuits[4].map(ex=>({...ex})));
 
   // ---- SPRINTS (Wednesday + Friday + Saturday) ----
   wed.push({name:'Sprint Intervals', detail:dl?'4x40yd @ 70% (walk back rest)':'6-8x40yd sprints -- walk back = rest. MAX effort. Do AFTER all lifting. NO weight vest.', tag:'cardio'});
