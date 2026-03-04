@@ -325,7 +325,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <div class="stat-box"><div class="val" id="carbVal">0g</div><div class="label">Carbs</div></div>
           <div class="stat-box"><div class="val" id="fatVal">0g</div><div class="label">Fat</div></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px;">Target: 3,150 cal / 240g P / 300g C / 88g F</div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px;" id="macroTarget"></div>
+        <div style="text-align:center;font-size:10px;margin-bottom:4px;"><span id="dayTypeLabel" style="padding:2px 8px;border-radius:4px;font-weight:700;"></span></div>
       </div>
       <div class="card"><div class="card-title">6-Meal Plan</div><div id="mealPlanCards"></div></div>
     </div>
@@ -651,7 +652,7 @@ const DEBLOAT_AM = [
 const DEBLOAT_DIET = [
   {name:'Water: 1 Gallon/Day Minimum', detail:'Counterintuitive but flooding your body with water signals it to RELEASE stored water. Dehydration = retention. Carry a gallon jug.', icon:'W'},
   {name:'Sodium Under 2,300mg', detail:'Track for one week. Restaurant food, sauces, and seasoning packets are hidden sodium bombs. Your clean meal plan is fine -- watch the extras.', icon:'Na'},
-  {name:'Front-Load Carbs', detail:'Every 1g glycogen stores 3-4g water. Your late meals (pasta at 8:30 PM, banana at 10:30 PM) may cause AM puffiness. Shift more carbs to meals 1-3.', icon:'C'},
+  {name:'Front-Load Carbs', detail:'Every 1g glycogen stores 3-4g water. On training days carbs are already low. On refeed days (Sat/Sun), enjoy carbs but expect slightly more AM puffiness -- it\'s water, not fat.', icon:'C'},
   {name:'Potassium-Rich Foods', detail:'Potassium counteracts sodium. Bananas, sweet potatoes, salmon, avocado -- you already eat most of these. Keep it up.', icon:'K'},
   {name:'Sleep Slightly Elevated', detail:'One extra pillow or raise head of bed 15-20 degrees. Gravity drains fluid from face overnight instead of letting it pool.', icon:'S'},
   {name:'Dairy Test (Optional)', detail:'Dairy is a common inflammatory trigger for facial bloat. Try cutting it for 2 weeks as a test. If puffiness drops noticeably, you have your answer.', icon:'D'},
@@ -683,14 +684,25 @@ const SUPPLEMENTS = [
   {name:'TRU NIAGEN (NR)', dose:'300mg', time:'PM', note:'Nicotinamide riboside. NAD+ precursor. Strong clinical data for cellular aging.'},
   {name:'Casein Protein', dose:'30g', time:'Before bed', note:'Slow-release protein. 8hr muscle protein synthesis while sleeping.'},
 ];
-const MEALS = [
-  {name:'Meal 1 -- Pre-Workout', time:'~7:30 AM', cal:450, p:30, c:35, f:18, desc:'4 whole eggs scrambled + 1 slice Ezekiel toast. Light enough to digest before training.'},
-  {name:'Meal 2 -- Post-Workout', time:'~10:30 AM', cal:700, p:50, c:85, f:12, desc:'1.5 cups oats w/ banana + honey, protein shake (40g whey). Carb-heavy recovery window.'},
-  {name:'Meal 3 -- Lunch', time:'~1:00 PM', cal:600, p:45, c:55, f:18, desc:'8oz chicken breast, 1.5 cups jasmine rice, broccoli, 1 tbsp olive oil'},
-  {name:'Meal 4 -- Snack', time:'~3:30 PM', cal:400, p:30, c:45, f:10, desc:'Greek yogurt (1.5 cups), granola, mixed berries, drizzle honey'},
-  {name:'Meal 5 -- Dinner', time:'~6:00 PM', cal:650, p:50, c:60, f:18, desc:'8oz salmon/steak, sweet potato, asparagus, side salad w/ olive oil'},
-  {name:'Meal 6 -- Pre-Bed', time:'~10:00 PM', cal:350, p:35, c:20, f:12, desc:'Casein shake (30g), 2 tbsp PB -- slow protein overnight. Keep carbs low here for less AM puffiness.'},
+// Carb Cycling: Tue-Fri = training (lower carb), Sat-Sun = refeed (higher carb from lifestyle meals)
+const MEALS_TRAINING = [
+  {name:'Meal 1 -- Pre-Workout', time:'~7:30 AM', cal:500, p:35, c:25, f:25, desc:'4 whole eggs scrambled + 1/2 avocado. High fat, low carb, easy to digest before training.'},
+  {name:'Meal 2 -- Post-Workout', time:'~10:30 AM', cal:600, p:50, c:55, f:14, desc:'1 cup oats w/ protein shake (40g whey), banana. Primary carb window -- glycogen depleted.'},
+  {name:'Meal 3 -- Lunch', time:'~1:00 PM', cal:550, p:45, c:25, f:25, desc:'8oz chicken breast, big mixed greens salad, 2 tbsp olive oil, avocado. Skip the rice.'},
+  {name:'Meal 4 -- Snack', time:'~3:30 PM', cal:350, p:35, c:15, f:15, desc:'Greek yogurt (1.5 cups) + mixed berries. No granola -- keeps carbs down.'},
+  {name:'Meal 5 -- Dinner', time:'~6:00 PM', cal:550, p:45, c:20, f:25, desc:'8oz salmon/steak, roasted veggies (broccoli, asparagus, zucchini), olive oil. No sweet potato on training days.'},
+  {name:'Meal 6 -- Pre-Bed', time:'~10:00 PM', cal:350, p:35, c:10, f:16, desc:'Casein shake (30g), 2 tbsp PB. Zero carbs here -- less AM puffiness.'},
 ];
+const MEALS_REFEED = [
+  {name:'Meal 1 -- Morning', time:'~9:00 AM', cal:450, p:45, c:30, f:15, desc:'Protein shake (40g whey) + banana. Bank protein early before going out.'},
+  {name:'Meal 2 -- Brunch/Lunch', time:'~12:00 PM', cal:600, p:40, c:60, f:18, desc:'Eat what you want -- this is refeed territory. Just include a protein source.'},
+  {name:'Meal 3 -- Afternoon', time:'~3:30 PM', cal:400, p:35, c:30, f:14, desc:'Greek yogurt + fruit or a chicken wrap. Keep protein rolling.'},
+  {name:'Meal 4 -- Dinner/Night Out', time:'~7:00 PM+', cal:800, p:30, c:90, f:25, desc:'Pizza, Italian, whatever the plan is. Enjoy it guilt-free -- your Tue-Fri discipline earned this.'},
+  {name:'Meal 5 -- Late Night', time:'if needed', cal:350, p:35, c:15, f:12, desc:'Casein shake if you\'re home. Optional -- don\'t force it after a big dinner.'},
+];
+function isRefeedDay() { const d = new Date().getDay(); return d===0 || d===6; } // Sat=6, Sun=0
+function getMeals() { return isRefeedDay() ? MEALS_REFEED : MEALS_TRAINING; }
+const MEALS = getMeals();
 const APT_STRETCHES = [
   {name:'Hip Flexor Stretch (Couch Stretch)', detail:'2x60s each side. Back knee on cushion, squeeze glute, lean forward. This is the #1 APT fix.', tag:'stretch'},
   {name:'Rectus Femoris Stretch', detail:'2x45s each. Lying quad stretch pulling heel to glute. Targets the quad that crosses the hip.', tag:'stretch'},
@@ -755,7 +767,7 @@ function getDailyProgress() {
   const exercises=plan[dk].exercises||[];
   let done=0,total=0,exDone=0,mealDone=0,suppDone=0;
   exercises.forEach((_,i)=>{total++;if(s.exerciseChecks[d+'_ex_'+i]){done++;exDone++;}});
-  MEALS.forEach((_,i)=>{total++;if(s.mealChecks[d+'_meal_'+i]){done++;mealDone++;}});
+  getMeals().forEach((_,i)=>{total++;if(s.mealChecks[d+'_meal_'+i]){done++;mealDone++;}});
   SUPPLEMENTS.forEach((_,i)=>{total++;if(s.suppChecks[d+'_supp_'+i]){done++;suppDone++;}});
   SKIN_AM.forEach(item=>{total++;if(s.skinChecks[d+'_am_'+item.num])done++;});
   DEBLOAT_AM.forEach(item=>{total++;if(s.skinChecks[d+'_debloat_'+item.num])done++;});
@@ -801,7 +813,7 @@ function updateProgress() {
 function showCompletion(prog,s) {
   const streak=getStreak(s);const lvl=getLevel(s.xp||0);
   document.getElementById('compEx').textContent=prog.exDone+'/'+prog.exTotal;
-  document.getElementById('compMeals').textContent=prog.mealDone+'/'+MEALS.length;
+  document.getElementById('compMeals').textContent=prog.mealDone+'/'+getMeals().length;
   document.getElementById('compSupps').textContent=prog.suppDone+'/'+SUPPLEMENTS.length;
   document.getElementById('compStreak').textContent=streak;
   document.getElementById('compLevelText').textContent='Level '+lvl.level+' — '+lvl.title;
@@ -828,7 +840,7 @@ function checkSectionComplete(type) {
     const exs=plan[dk].exercises||[];
     if(exs.length&&exs.every((_,i)=>s.exerciseChecks[d+'_ex_'+i]))showSectionToast('training complete',exs.length*10);
   }else if(type==='meal'){
-    if(MEALS.every((_,i)=>s.mealChecks[d+'_meal_'+i]))showSectionToast('nutrition complete',MEALS.length*8);
+    if(getMeals().every((_,i)=>s.mealChecks[d+'_meal_'+i]))showSectionToast('nutrition complete',getMeals().length*8);
   }else if(type==='supplement'){
     if(SUPPLEMENTS.every((_,i)=>s.suppChecks[d+'_supp_'+i]))showSectionToast('stack complete',SUPPLEMENTS.length*5);
   }
@@ -939,10 +951,25 @@ function renderSupps() {
 }
 function toggleSupp(i) { const s=getState(); const k=today()+'_supp_'+i; const wasOff=!s.suppChecks[k]; s.suppChecks[k]=!s.suppChecks[k]; saveState(s); renderSupps(); if(wasOff)grantXP('supplement'); updateProgress(); checkSectionComplete('supplement'); }
 
-// ========== MEALS ==========
+// ========== MEALS (Carb Cycling) ==========
 function renderMealPlan() {
   const s = getState();
-  document.getElementById('mealPlanCards').innerHTML = MEALS.map((m,i)=>{
+  const meals = getMeals();
+  const refeed = isRefeedDay();
+  const dayLabel = document.getElementById('dayTypeLabel');
+  const macroTarget = document.getElementById('macroTarget');
+  if (refeed) {
+    dayLabel.textContent = 'REFEED DAY -- Sat/Sun';
+    dayLabel.style.background = 'rgba(253,203,110,.15)';
+    dayLabel.style.color = 'var(--orange)';
+    macroTarget.textContent = 'Refeed day -- hit 240g protein, enjoy the carbs. You earned it.';
+  } else {
+    dayLabel.textContent = 'TRAINING DAY -- Lower Carb';
+    dayLabel.style.background = 'rgba(108,92,231,.15)';
+    dayLabel.style.color = 'var(--accent)';
+    macroTarget.textContent = 'Target: ~2,900 cal / 240g P / 150g C / 120g F';
+  }
+  document.getElementById('mealPlanCards').innerHTML = meals.map((m,i)=>{
     const k = today()+'_meal_'+i;
     const done = s.mealChecks[k];
     return `<div class="meal"><div class="meal-header"><div><div class="meal-name">${m.name}</div><div style="font-size:11px;color:var(--muted);">${m.time}</div></div><div class="check ${done?'done':''}" onclick="toggleMeal(${i})"></div></div><div class="meal-desc">${m.desc}</div><div class="meal-macros">${m.cal} cal | ${m.p}g P | ${m.c}g C | ${m.f}g F</div></div>`;
@@ -952,7 +979,8 @@ function renderMealPlan() {
 function toggleMeal(i) { const s=getState(); const k=today()+'_meal_'+i; const wasOff=!s.mealChecks[k]; s.mealChecks[k]=!s.mealChecks[k]; saveState(s); renderMealPlan(); if(wasOff)grantXP('meal'); updateProgress(); checkSectionComplete('meal'); }
 function updateMacros() {
   const s=getState(); let cal=0,p=0,c=0,f=0;
-  MEALS.forEach((m,i)=>{ if(s.mealChecks[today()+'_meal_'+i]){cal+=m.cal;p+=m.p;c+=m.c;f+=m.f;} });
+  const meals = getMeals();
+  meals.forEach((m,i)=>{ if(s.mealChecks[today()+'_meal_'+i]){cal+=m.cal;p+=m.p;c+=m.c;f+=m.f;} });
   document.getElementById('calVal').textContent=cal;
   document.getElementById('proVal').textContent=p+'g';
   document.getElementById('carbVal').textContent=c+'g';
@@ -1020,8 +1048,9 @@ function renderTrainToday() {
       return `<div class="exercise ${done?'completed':''} editable" onclick="toggleExercise(${i})"><div class="info"><div class="name">${ex.name} ${tagHtml}</div><div class="detail">${ex.detail}</div></div><div class="check ${done?'done':''}"></div></div>`;
     }).join('');
   }
-  // Today meals
-  document.getElementById('todayMeals').innerHTML = MEALS.map((m,i)=>{
+  // Today meals (carb cycling aware)
+  const todayMeals = getMeals();
+  document.getElementById('todayMeals').innerHTML = todayMeals.map((m,i)=>{
     const k = today()+'_meal_'+i;
     const done = s.mealChecks[k];
     return `<div class="exercise ${done?'completed':''}" onclick="toggleMeal(${i});renderTrainToday();"><div class="info"><div class="name">${m.name}</div><div class="detail">${m.desc}</div></div><div class="check ${done?'done':''}"></div></div>`;
