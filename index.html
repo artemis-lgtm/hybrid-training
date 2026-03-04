@@ -287,7 +287,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div id="skinAm" class="sub-section active">
       <div class="card"><div class="card-title">Morning Routine <span style="font-size:11px;color:var(--muted);font-weight:400;">(post-workout shower)</span></div><div id="skinAmList"></div>
-      <div class="tip">Ice dunk + gua sha first thing when you wake up (pre-workout). Cleanser through sunscreen after your workout shower (~10:30 AM). Gua sha de-puffs, then skincare absorbs better on treated skin.</div></div>
+      <div class="tip">Post-workout shower: cleanser first to clear sweat + grime. Then ice plunge on clean skin -- cold tightens pores without trapping debris. Gua sha + serums + sunscreen after (~10:30 AM).</div></div>
     </div>
     <div id="skinPm" class="sub-section">
       <div class="card"><div class="card-title">Nightly Routine</div>
@@ -661,9 +661,9 @@ function buildPlan(periodOverride) {
 
 // ========== STATIC DATA ==========
 const SKIN_AM = [
-  {num:1, status:'new', name:'Ice Water Face Dunk', brand:'Bowl + ice (or ice roller)', detail:'First thing AM. Submerge face 15-30 seconds, repeat 2-3x. Instant vasoconstriction -- tightens and de-puffs overnight swelling.'},
-  {num:2, status:'new', name:'Gua Sha Lymphatic Drainage', brand:'Stainless steel gua sha tool', detail:'3-5 min. Use snail mucin as slip. Stroke OUTWARD + DOWNWARD: jawline chin-to-ear, cheeks nose-to-ear, forehead center-to-temples. Finish behind ear, down neck to collarbone.', price:'~$12'},
-  {num:3, status:'new', name:'Cleanser', brand:'Round Lab Dokdo Cleanser', detail:'pH 5.5, gentle, no stripping. Use in post-workout shower.', price:'~$16'},
+  {num:1, status:'new', name:'Cleanser', brand:'Round Lab Dokdo Cleanser', detail:'First step -- use in post-workout shower before ice plunge. pH 5.5, gentle, no stripping. Get the sweat and grime off first.', price:'~$16'},
+  {num:2, status:'new', name:'Ice Water Face Dunk', brand:'Bowl + ice (or ice roller)', detail:'After shower, clean skin. Submerge face 15-30 seconds, repeat 2-3x. Vasoconstriction works better on clean pores -- cold tightens and de-puffs without trapping debris.'},
+  {num:3, status:'new', name:'Gua Sha Lymphatic Drainage', brand:'Stainless steel gua sha tool', detail:'3-5 min. Use snail mucin as slip. Stroke OUTWARD + DOWNWARD: jawline chin-to-ear, cheeks nose-to-ear, forehead center-to-temples. Finish behind ear, down neck to collarbone.', price:'~$12'},
   {num:4, status:'new', name:'Vitamin C Serum', brand:'Timeless 20% Vitamin C + E Ferulic', detail:'20% L-ascorbic acid. Same formula as SkinCeuticals at 1/5 price. Store in fridge.', price:'~$28'},
   {num:5, status:'new', name:'Niacinamide', brand:'COSRX The Niacinamide 15 Serum', detail:'15% niacinamide. Pore minimizer, brightener, barrier repair.', price:'~$20'},
   {num:6, status:'new', name:'Under-Eye Caffeine', brand:'The Ordinary Caffeine Solution 5% + EGCG', detail:'Tap under eyes + orbital bone with ring finger. Constricts blood vessels, de-puffs overnight swelling. Use BEFORE sunscreen.', price:'~$8'},
