@@ -1393,8 +1393,31 @@ function editExercise(idx) { const plan=buildPlan();const dayKeys=['sun','mon','
 function saveModal() { /* Edits are session-only since plan regenerates */ closeModal(); toast('Use the Plan tab to see your auto-rotating program'); }
 function closeModal() { document.getElementById('editModal').classList.remove('show'); editingIdx=-1; }
 
+// ========== DAILY RESET & CLEANUP ==========
+function dailyReset() {
+  const s = getState();
+  const d = today();
+  // One-time UTC bug migration: clear tainted checks for today
+  if (!s._utcFixApplied) {
+    ['skinChecks','suppChecks','mealChecks','exerciseChecks'].forEach(bucket => {
+      Object.keys(s[bucket]).forEach(k => { if (k.startsWith(d)) delete s[bucket][k]; });
+    });
+    if (s.completedDays) s.completedDays = s.completedDays.filter(x => x !== d);
+    if (s.completionShown) delete s.completionShown[d];
+    s._utcFixApplied = true;
+  }
+  // Prune check entries older than 60 days to keep localStorage clean
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 60);
+  const cutoffStr = localDateStr(cutoff);
+  ['skinChecks','suppChecks','mealChecks','exerciseChecks'].forEach(bucket => {
+    Object.keys(s[bucket]).forEach(k => { if (k.slice(0,10) < cutoffStr) delete s[bucket][k]; });
+  });
+  saveState(s);
+}
+
 // ========== INIT ==========
 function init() {
+  dailyReset();
   renderSkinAm(); renderSkinPm(); renderSkinShop();
   renderSupps(); renderMealPlan();
   renderPeriodBanner(); renderWeekGrid(); renderTrainToday();
