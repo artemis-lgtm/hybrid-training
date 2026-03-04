@@ -1200,8 +1200,15 @@ function renderTrainToday() {
   const viewingToday = isViewingToday();
   const dayLabel = viewingToday ? dayPlan.title : dayKeys[selectedDayIdx].toUpperCase() + ' -- ' + dayPlan.title;
   document.getElementById('todayDayLabel').innerHTML = `<span class="day-label ${typeClass}">${dayLabel}</span>`;
+  // Daily step target -- shows every day
+  const stepK = today()+'_steps';
+  const stepsDone = viewingToday && s.exerciseChecks && s.exerciseChecks[stepK];
+  const stepsHtml = viewingToday
+    ? `<div class="exercise ${stepsDone?'completed':''}" onclick="toggleSteps()" style="border-left:3px solid var(--green);margin-bottom:8px;"><div class="info"><div class="name">7,000 Steps</div><div class="detail">Walk it out. Post-workout walk, evening walk, whatever gets you there. Non-negotiable daily target.</div></div><div class="check ${stepsDone?'done':''}"></div></div>`
+    : `<div class="exercise" style="border-left:3px solid var(--green);margin-bottom:8px;"><div class="info"><div class="name">7,000 Steps</div><div class="detail">Daily target. Post-workout walk, evening walk, or accumulated throughout the day.</div></div></div>`;
+  document.getElementById('todayExercises').innerHTML = stepsHtml;
   if (!dayPlan.exercises || dayPlan.exercises.length === 0) {
-    document.getElementById('todayExercises').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Rest day. Recover. Stretch if you feel like it.</div>';
+    document.getElementById('todayExercises').innerHTML += '<div style="text-align:center;padding:20px;color:var(--muted);">Rest day. Recover. Stretch if you feel like it.</div>';
   } else {
     document.getElementById('todayExercises').innerHTML = dayPlan.exercises.map((ex,i)=>{
       const k = today()+'_ex_'+i;
@@ -1238,6 +1245,7 @@ function renderTrainToday() {
   }
 }
 function toggleExercise(i) { const s=getState(); const k=today()+'_ex_'+i; const wasOff=!s.exerciseChecks[k]; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderTrainToday(); if(wasOff)grantXP('exercise'); updateProgress(); checkSectionComplete('exercise'); }
+function toggleSteps() { const s=getState(); const k=today()+'_steps'; s.exerciseChecks[k]=!s.exerciseChecks[k]; saveState(s); renderTrainToday(); }
 
 // ========== PLAN VIEW ==========
 // Plan view removed -- day grid is now clickable to preview any day's workout
