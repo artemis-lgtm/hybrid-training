@@ -34,6 +34,21 @@
       "f": 33,
       "time": "~11:20 AM",
       "note": "Pan-seared ribeye cubes + fried egg. Replaces planned chicken salad."
+    },
+    {
+      "meal": "Lunch 2",
+      "time": "14:32",
+      "items": [
+        "Wild Alaskan Sockeye Salmon (3 fillets, ~18oz raw)"
+      ],
+      "macros": {
+        "calories": 810,
+        "protein": 126,
+        "carbs": 0,
+        "fat": 33
+      },
+      "source": "photo",
+      "notes": "Prior Catch brand, baked"
     }
   ]
 }
