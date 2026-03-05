@@ -709,6 +709,7 @@ const SKIN_AM = [
   {num:9, status:'new', name:'Chin Tucks', brand:'3x10 reps daily', detail:'Stand against wall, tuck chin straight back (make a double chin). Hold 5 seconds. Fixes forward head posture -- makes jawline look sharper, neck longer, eliminates tech-neck double chin.'},
   {num:10, status:'new', name:'Mastic Gum', brand:'Chew 30-45 min daily', detail:'Hard gum that hypertrophies masseter muscles -- wider, more angular jaw. Real results in 2-3 months. Chew evenly on both sides. Amazon: Greek mastic gum or Falim gum.', price:'~$15'},
   {num:11, status:'new', name:'Scalp Massage', brand:'5 min with fingertips in shower', detail:'Stimulates blood flow + hair growth. Do while shampooing. Firm circular pressure across entire scalp.', days:[2,4,6]},
+  {num:12, name:'Brush Teeth', brand:'Morning brushing', detail:'Brush for 2 full minutes. After breakfast, wait 30 min before brushing (acid from food softens enamel).'},
 ];
 function getSkinAMToday() { const dow=new Date().getDay(); return SKIN_AM.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_PM_FULL = [
@@ -727,6 +728,7 @@ const SKIN_PM_FULL = [
   {num:13, status:'new', name:'BHA Deep Clean (T-Zone)', brand:'COSRX BHA Blackhead Power Liquid', detail:'WEDNESDAY TREATMENT: Extra concentrated application on nose + chin + forehead. Same product as regular BHA, deeper treatment.', retinolSkip:true, skipNote:'SKIP on retinol nights', days:[3], wait:'Wait 20 min before next step'},
   {num:14, status:'new', name:'Under-Eye Caffeine', brand:'The Ordinary Caffeine Solution 5% + EGCG', detail:'Second application. Targets dark circles (vascular) over time with sustained use. Same as AM -- tap under eyes + orbital bone with ring finger.', price:'~$8'},
   {num:15, status:'new', name:'Minoxidil 5% (Beard)', brand:'Kirkland or Rogaine 5% Liquid', detail:'LAST step. Wait 5-10 min after skincare absorbs. Apply to beard area only. Let dry 10-15 min before pillow.', price:'~$20 (3mo)', wait:'Wait 5-10 min for skincare to absorb first'},
+  {num:16, name:'Brush Teeth', brand:'Nighttime brushing', detail:'Brush for 2 full minutes + floss. Most important brushing of the day -- removes everything accumulated. Never skip.'},
 ];
 function getSkinPMToday() { const dow=new Date().getDay(); return SKIN_PM_FULL.filter(i=>!i.days||i.days.includes(dow)); }
 const SKIN_SHOP = [
