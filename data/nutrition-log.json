@@ -22,5 +22,18 @@
       "time": "~5:00 PM",
       "note": "Bone-in ribeye with compound butter + white asparagus"
     }
+  ],
+  "2026-03-05": [
+    {
+      "meal": "Meal 3 -- Lunch",
+      "slot": 2,
+      "item": "Ribeye (cubed, ~5oz) + 1 egg",
+      "cal": 453,
+      "p": 36,
+      "c": 1,
+      "f": 33,
+      "time": "~11:20 AM",
+      "note": "Pan-seared ribeye cubes + fried egg. Replaces planned chicken salad."
+    }
   ]
 }
