@@ -39,16 +39,16 @@
       "meal": "Lunch 2",
       "time": "14:32",
       "items": [
-        "Wild Alaskan Sockeye Salmon (3 fillets, ~18oz raw)"
+        "Wild Alaskan Sockeye Salmon (2 fillets, ~12oz raw)"
       ],
       "macros": {
-        "calories": 810,
-        "protein": 126,
+        "calories": 540,
+        "protein": 84,
         "carbs": 0,
-        "fat": 33
+        "fat": 22
       },
       "source": "photo",
-      "notes": "Prior Catch brand, baked"
+      "notes": "Prior Catch brand, baked. Corrected from 3 to 2 fillets."
     }
   ]
 }
