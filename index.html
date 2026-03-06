@@ -421,7 +421,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="card"><div class="card-title">Weekly Volume</div><div class="chart-container"><canvas id="volumeChart"></canvas></div></div>
     </div>
     <div id="progCompliance" class="sub-section">
-      <div class="card"><div class="card-title">Protein & Macro Tracking</div><div class="chart-range"><button class="chart-range-btn active" onclick="setMacroRange('all',this)">All</button><button class="chart-range-btn" onclick="setMacroRange(7,this)">7d</button><button class="chart-range-btn" onclick="setMacroRange(14,this)">14d</button><button class="chart-range-btn" onclick="setMacroRange(30,this)">30d</button></div><div class="chart-container"><canvas id="macroChart" style="height:240px"></canvas></div><div class="chart-stats" id="macroChartStats"></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="card-title" style="margin:0">Protein & Macro Tracking</div>
+          <button onclick="toggleBacklog()" style="background:var(--accent);color:var(--white);border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">+ Log Past Meal</button>
+        </div>
+        <div id="backlogForm" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Date</label><input type="date" id="bl-date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+            <div style="flex:2;min-width:160px"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Meal Name</label><input type="text" id="bl-meal" placeholder="e.g. Lunch - Chicken & Rice" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Calories</label><input type="number" id="bl-cal" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Protein (g)</label><input type="number" id="bl-p" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Carbs (g)</label><input type="number" id="bl-c" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Fat (g)</label><input type="number" id="bl-f" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Note (optional)</label><input type="text" id="bl-note" placeholder="e.g. ate out at steakhouse" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:13px" /></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="submitBacklog()" style="flex:1;background:var(--accent);color:var(--white);border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">Save Entry</button>
+            <button onclick="toggleBacklog()" style="background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-size:13px;cursor:pointer">Cancel</button>
+          </div>
+          <div id="bl-status" style="margin-top:6px;font-size:11px;color:var(--green);display:none"></div>
+        </div><div class="chart-range"><button class="chart-range-btn active" onclick="setMacroRange('all',this)">All</button><button class="chart-range-btn" onclick="setMacroRange(7,this)">7d</button><button class="chart-range-btn" onclick="setMacroRange(14,this)">14d</button><button class="chart-range-btn" onclick="setMacroRange(30,this)">30d</button></div><div class="chart-container"><canvas id="macroChart" style="height:240px"></canvas></div><div class="chart-stats" id="macroChartStats"></div>
         <div id="macroBreakdown" style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.8"></div>
       </div>
       <div class="card"><div class="card-title">Daily Compliance</div><div class="chart-range"><button class="chart-range-btn active" onclick="setComplianceRange('all',this)">All</button><button class="chart-range-btn" onclick="setComplianceRange(14,this)">14d</button><button class="chart-range-btn" onclick="setComplianceRange(30,this)">30d</button></div><div class="chart-container"><canvas id="complianceChart"></canvas></div><div class="chart-stats" id="complianceChartStats"></div></div>
@@ -1410,6 +1434,109 @@ function renderVolumeChart() {
     ctx.fillStyle='#e8e8f0';ctx.font='11px -apple-system';ctx.textAlign='center';ctx.fillText(wk.count,x+bw/2,y-5);
     ctx.fillStyle='#8888a0';ctx.font='10px -apple-system';ctx.fillText(wk.label,x+bw/2,H-pad.b+15);});
 }
+// ========== BACKLOG MEAL ENTRY ==========
+function toggleBacklog() {
+  const form = document.getElementById('backlogForm');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    // Default date to yesterday
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    document.getElementById('bl-date').value = yesterday.toISOString().slice(0, 10);
+    document.getElementById('bl-meal').value = '';
+    document.getElementById('bl-cal').value = '';
+    document.getElementById('bl-p').value = '';
+    document.getElementById('bl-c').value = '';
+    document.getElementById('bl-f').value = '';
+    document.getElementById('bl-note').value = '';
+    document.getElementById('bl-status').style.display = 'none';
+  } else {
+    form.style.display = 'none';
+  }
+}
+
+async function submitBacklog() {
+  const date = document.getElementById('bl-date').value;
+  const meal = document.getElementById('bl-meal').value.trim();
+  const cal = parseInt(document.getElementById('bl-cal').value) || 0;
+  const p = parseInt(document.getElementById('bl-p').value) || 0;
+  const c = parseInt(document.getElementById('bl-c').value) || 0;
+  const f = parseInt(document.getElementById('bl-f').value) || 0;
+  const note = document.getElementById('bl-note').value.trim();
+
+  if (!date) { alert('Please select a date.'); return; }
+  if (!meal) { alert('Please enter a meal name.'); return; }
+  if (cal === 0 && p === 0) { alert('Please enter at least calories or protein.'); return; }
+
+  const entry = { meal, cal, p, c, f, time: 'backlog', note: note || 'Logged retroactively' };
+
+  // Load current log, add entry, save back
+  try {
+    const resp = await fetch('data/nutrition-log.json?v=' + Date.now());
+    const data = resp.ok ? await resp.json() : {};
+    if (!data[date]) data[date] = [];
+    entry.slot = data[date].length;
+    data[date].push(entry);
+
+    // Save via GitHub API (commit directly)
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    const ghResp = await fetch('https://api.github.com/repos/artemis-lgtm/hybrid-training/contents/data/nutrition-log.json', {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    const ghData = await ghResp.json();
+    const sha = ghData.sha;
+
+    const putResp = await fetch('https://api.github.com/repos/artemis-lgtm/hybrid-training/contents/data/nutrition-log.json', {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Log backlog meal: ${meal} (${date})`,
+        content: content,
+        sha: sha
+      })
+    });
+
+    if (putResp.status === 401 || putResp.status === 403) {
+      // No GitHub token in browser — save locally and show instructions
+      actualNutritionLog = data;
+      renderMacroChart();
+      const status = document.getElementById('bl-status');
+      status.textContent = `Saved locally for ${date}: ${meal} (${cal} cal / ${p}g P). Send me the entry and I'll commit it.`;
+      status.style.display = 'block';
+      status.style.color = 'var(--accent)';
+    } else if (putResp.ok) {
+      actualNutritionLog = data;
+      renderMacroChart();
+      const status = document.getElementById('bl-status');
+      status.textContent = `Saved to ${date}: ${meal} (${cal} cal / ${p}g P / ${c}g C / ${f}g F)`;
+      status.style.display = 'block';
+      status.style.color = 'var(--green)';
+    } else {
+      throw new Error('GitHub save failed');
+    }
+  } catch(e) {
+    // Fallback: update in-memory and show
+    if (!actualNutritionLog[date]) actualNutritionLog[date] = [];
+    entry.slot = actualNutritionLog[date].length;
+    actualNutritionLog[date].push(entry);
+    renderMacroChart();
+    const status = document.getElementById('bl-status');
+    status.textContent = `Saved locally for ${date}: ${meal} (${cal} cal / ${p}g P). Tell Artemis to sync it.`;
+    status.style.display = 'block';
+    status.style.color = 'var(--accent)';
+  }
+
+  // Clear fields for another entry
+  document.getElementById('bl-meal').value = '';
+  document.getElementById('bl-cal').value = '';
+  document.getElementById('bl-p').value = '';
+  document.getElementById('bl-c').value = '';
+  document.getElementById('bl-f').value = '';
+  document.getElementById('bl-note').value = '';
+}
+
 // ========== PROTEIN & MACRO CHART ==========
 let macroChartRange = 'all';
 function setMacroRange(r, btn) {
