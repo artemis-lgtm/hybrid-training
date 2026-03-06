@@ -49,6 +49,16 @@
       },
       "source": "photo",
       "notes": "Prior Catch brand, baked. Corrected from 3 to 2 fillets."
+    },
+    {
+      "meal": "Dinner",
+      "slot": 4,
+      "cal": 446,
+      "p": 72,
+      "c": 15,
+      "f": 8,
+      "time": "~7:24 PM",
+      "note": "Pan-seared chicken breast (~8oz) + 3 spoonfuls white rice (~1/3 cup). Said he had a little more than photo."
     }
   ]
 }
