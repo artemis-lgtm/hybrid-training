@@ -25,6 +25,36 @@
   ],
   "2026-03-05": [
     {
+      "meal": "Meal 1 -- Breakfast",
+      "slot": 0,
+      "cal": 210,
+      "p": 18,
+      "c": 2,
+      "f": 14,
+      "time": "~8:00 AM",
+      "note": "3 eggs"
+    },
+    {
+      "meal": "Meal 2 -- Salmon",
+      "slot": 1,
+      "cal": 460,
+      "p": 56,
+      "c": 0,
+      "f": 24,
+      "time": "~10:00 AM",
+      "note": "2 salmon filets (~4oz each)"
+    },
+    {
+      "meal": "Post-Workout Shake",
+      "slot": 2,
+      "cal": 130,
+      "p": 30,
+      "c": 2,
+      "f": 1,
+      "time": "~11:00 AM",
+      "note": "30g whey protein w/ water"
+    },
+    {
       "meal": "Meal 3 -- Lunch",
       "slot": 2,
       "item": "Ribeye (cubed, ~5oz) + 1 egg",
