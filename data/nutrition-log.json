@@ -90,5 +90,141 @@
       "time": "~7:24 PM",
       "note": "Pan-seared chicken breast (~8oz) + 3 spoonfuls white rice (~1/3 cup). Said he had a little more than photo."
     }
+  ],
+  "2026-03-07": [
+    {
+      "meal": "Protein Shake",
+      "slot": 0,
+      "cal": 130,
+      "p": 30,
+      "c": 2,
+      "f": 1,
+      "time": "morning",
+      "note": "30g whey protein"
+    },
+    {
+      "meal": "Chicken Breast",
+      "slot": 1,
+      "cal": 280,
+      "p": 53,
+      "c": 0,
+      "f": 6,
+      "time": "afternoon",
+      "note": "1 chicken breast filet (~8oz)"
+    },
+    {
+      "meal": "Penne Alla Vodka w/ Chicken",
+      "slot": 2,
+      "cal": 820,
+      "p": 42,
+      "c": 85,
+      "f": 32,
+      "time": "evening",
+      "note": "Full plate penne alla vodka with chicken"
+    },
+    {
+      "meal": "Pizza Slice",
+      "slot": 3,
+      "cal": 285,
+      "p": 12,
+      "c": 36,
+      "f": 10,
+      "time": "evening",
+      "note": "1 slice"
+    },
+    {
+      "meal": "Hamburger on White Bread",
+      "slot": 4,
+      "cal": 450,
+      "p": 28,
+      "c": 30,
+      "f": 24,
+      "time": "evening",
+      "note": "Burger patty on white bread"
+    },
+    {
+      "meal": "Tequila (~15 shots)",
+      "slot": 5,
+      "cal": 1470,
+      "p": 0,
+      "c": 0,
+      "f": 0,
+      "time": "night",
+      "note": "~15 tequila shots. 98 cal per 1.5oz shot. Pure alcohol calories."
+    }
+  ],
+  "2026-03-08": [
+    {
+      "meal": "Protein Shake",
+      "slot": 0,
+      "cal": 130,
+      "p": 30,
+      "c": 2,
+      "f": 1,
+      "time": "morning",
+      "note": "30g whey protein"
+    },
+    {
+      "meal": "Chicken Parm",
+      "slot": 1,
+      "cal": 760,
+      "p": 62,
+      "c": 40,
+      "f": 36,
+      "time": "afternoon",
+      "note": "Large chicken filet, breaded, with marinara + mozzarella"
+    },
+    {
+      "meal": "Casein Protein Shake",
+      "slot": 2,
+      "cal": 130,
+      "p": 30,
+      "c": 3,
+      "f": 1,
+      "time": "evening",
+      "note": "30g casein protein"
+    }
+  ],
+  "2026-03-09": [
+    {
+      "meal": "Protein Shake",
+      "slot": 0,
+      "cal": 130,
+      "p": 30,
+      "c": 2,
+      "f": 1,
+      "time": "morning",
+      "note": "30g whey protein"
+    },
+    {
+      "meal": "Pork Chop + Rice",
+      "slot": 1,
+      "cal": 480,
+      "p": 38,
+      "c": 22,
+      "f": 26,
+      "time": "midday",
+      "note": "Pork chop (~6oz) + half cup white rice"
+    },
+    {
+      "meal": "Chicken + Sweet Potatoes",
+      "slot": 2,
+      "cal": 620,
+      "p": 72,
+      "c": 40,
+      "f": 12,
+      "time": "afternoon",
+      "note": "2 chicken breast filets (~16oz total) + sweet potatoes"
+    },
+    {
+      "meal": "Ground Beef (1 lb)",
+      "slot": 3,
+      "cal": 1152,
+      "p": 88,
+      "c": 0,
+      "f": 88,
+      "time": "evening",
+      "note": "1 full pound of ground beef (est. 80/20)"
+    }
   ]
 }
