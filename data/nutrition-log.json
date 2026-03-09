@@ -183,6 +183,16 @@
       "f": 1,
       "time": "evening",
       "note": "30g casein protein"
+    },
+    {
+      "meal": "Spaghetti",
+      "slot": 3,
+      "cal": 550,
+      "p": 18,
+      "c": 72,
+      "f": 20,
+      "time": "evening",
+      "note": "Plate of spaghetti (est. ~2 cups pasta + marinara)"
     }
   ],
   "2026-03-09": [
