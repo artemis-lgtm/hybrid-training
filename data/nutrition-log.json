@@ -236,5 +236,48 @@
       "time": "evening",
       "note": "1 full pound of ground beef (est. 80/20)"
     }
+  ],
+  "2026-03-13": [
+    {
+      "meal": "Breakfast - Eggs",
+      "item": "2 whole eggs, scrambled/fried",
+      "cal": 140,
+      "p": 12,
+      "c": 1,
+      "f": 10,
+      "time": "morning",
+      "slot": 0
+    },
+    {
+      "meal": "Protein Shake",
+      "item": "Protein shake (30g protein)",
+      "cal": 160,
+      "p": 30,
+      "c": 5,
+      "f": 2,
+      "time": "morning",
+      "slot": 1
+    },
+    {
+      "meal": "Lunch - Pho",
+      "item": "Bowl of pho with rice noodles, 1/4 lb beef (eye round/flank)",
+      "cal": 620,
+      "p": 32,
+      "c": 68,
+      "f": 18,
+      "time": "afternoon",
+      "slot": 2
+    },
+    {
+      "meal": "Dinner - Sushi & Beer",
+      "item": "3 full sushi rolls (approx 24 pieces), 1 beer",
+      "cal": 1150,
+      "p": 36,
+      "c": 156,
+      "f": 24,
+      "time": "evening",
+      "slot": 3,
+      "note": "Sushi rolls ~350-400 cal each depending on type. Beer ~150 cal."
+    }
   ]
 }
