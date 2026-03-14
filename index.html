@@ -1499,15 +1499,17 @@ async function submitBacklog() {
     });
 
     if (putResp.status === 401 || putResp.status === 403) {
-      // No GitHub token in browser — save locally and show instructions
+      // No GitHub token — save to localStorage (primary store)
       actualNutritionLog = data;
+      saveNutritionLog();
       renderMacroChart();
       const status = document.getElementById('bl-status');
-      status.textContent = `Saved locally for ${date}: ${meal} (${cal} cal / ${p}g P). Send me the entry and I'll commit it.`;
+      status.textContent = `Saved for ${date}: ${meal} (${cal} cal / ${p}g P / ${c}g C / ${f}g F)`;
       status.style.display = 'block';
-      status.style.color = 'var(--accent)';
+      status.style.color = 'var(--green)';
     } else if (putResp.ok) {
       actualNutritionLog = data;
+      saveNutritionLog();
       renderMacroChart();
       const status = document.getElementById('bl-status');
       status.textContent = `Saved to ${date}: ${meal} (${cal} cal / ${p}g P / ${c}g C / ${f}g F)`;
@@ -1517,13 +1519,14 @@ async function submitBacklog() {
       throw new Error('GitHub save failed');
     }
   } catch(e) {
-    // Fallback: update in-memory and show
+    // Fallback: save to localStorage
     if (!actualNutritionLog[date]) actualNutritionLog[date] = [];
     entry.slot = actualNutritionLog[date].length;
     actualNutritionLog[date].push(entry);
+    saveNutritionLog();
     renderMacroChart();
     const status = document.getElementById('bl-status');
-    status.textContent = `Saved locally for ${date}: ${meal} (${cal} cal / ${p}g P). Tell Artemis to sync it.`;
+    status.textContent = `Saved for ${date}: ${meal} (${cal} cal / ${p}g P).`;
     status.style.display = 'block';
     status.style.color = 'var(--accent)';
   }
@@ -1749,12 +1752,29 @@ function saveModal() { /* Edits are session-only since plan regenerates */ close
 function closeModal() { document.getElementById('editModal').classList.remove('show'); editingIdx=-1; }
 
 // ========== ACTUAL NUTRITION LOG ==========
+const NUTRITION_STORAGE_KEY = 'healthHub_nutritionLog';
 let actualNutritionLog = {};
+function saveNutritionLog() {
+  localStorage.setItem(NUTRITION_STORAGE_KEY, JSON.stringify(actualNutritionLog));
+}
 async function fetchNutritionLog() {
+  // 1. Load from localStorage first (this is the primary store now)
   try {
-    const resp = await fetch('data/nutrition-log.json?v='+Date.now());
-    if (resp.ok) actualNutritionLog = await resp.json();
-  } catch(e) { /* no log yet */ }
+    const local = localStorage.getItem(NUTRITION_STORAGE_KEY);
+    if (local) {
+      actualNutritionLog = JSON.parse(local);
+    }
+  } catch(e) { /* corrupted localStorage, ignore */ }
+  // 2. If localStorage is empty, seed from the GitHub JSON file
+  if (Object.keys(actualNutritionLog).length === 0) {
+    try {
+      const resp = await fetch('data/nutrition-log.json?v='+Date.now());
+      if (resp.ok) {
+        actualNutritionLog = await resp.json();
+        saveNutritionLog(); // persist the seed to localStorage
+      }
+    } catch(e) { /* no remote log */ }
+  }
 }
 function getTodayActual() { return actualNutritionLog[today()] || []; }
 // Auto-sync: logged meals → mealChecks → progress tracker
